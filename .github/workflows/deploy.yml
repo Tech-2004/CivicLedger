@@ -1,15 +1,15 @@
 name: Deploy (Vercel)
 
-# Optional CD. This workflow stays DORMANT until the three Vercel secrets are
-# set in the repo (Settings -> Secrets and variables -> Actions):
+# Optional CD. Stays DORMANT until the three Vercel secrets are set in the repo
+# (Settings -> Secrets and variables -> Actions):
 #   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
-# If they're absent, every job no-ops. If you instead connect the repo via
-# Vercel's native Git integration, leave these secrets unset so this workflow
-# doesn't double-deploy.
+# If absent, the job no-ops. Leave them unset if you use Vercel's native Git
+# integration instead (avoids double deploys).
 #
-# Behavior when enabled:
-#   - PRs into main   -> preview deployment
-#   - pushes to main  -> production deployment
+# When enabled:
+#   - PRs into main   -> "preview"    environment
+#   - pushes to main  -> "production" environment (add required reviewers on the
+#                        Environment in repo settings to gate prod behind approval)
 
 on:
   push:
@@ -18,10 +18,23 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: read
+  deployments: write
+
+# Never cancel an in-flight deploy for the same target.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   deploy:
     name: deploy
     runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
     env:
       VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
       VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
@@ -64,7 +77,9 @@ jobs:
         run: vercel build ${{ env.IS_PROD == 'true' && '--prod' || '' }} --token="$VERCEL_TOKEN"
 
       - name: Deploy
+        id: deploy
         if: steps.guard.outputs.enabled == 'true'
         run: |
-          vercel deploy --prebuilt ${{ env.IS_PROD == 'true' && '--prod' || '' }} \
-            --token="$VERCEL_TOKEN"
+          URL=$(vercel deploy --prebuilt ${{ env.IS_PROD == 'true' && '--prod' || '' }} --token="$VERCEL_TOKEN")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed to: $URL"

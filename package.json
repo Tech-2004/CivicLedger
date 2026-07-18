@@ -14,6 +14,7 @@
     "start": "npm run start -w @civicledger/client",
     "lint": "npm run lint -w @civicledger/client",
     "typecheck": "npm run typecheck -w @civicledger/shared && npm run typecheck -w @civicledger/server && npm run typecheck -w @civicledger/client",
+    "test": "npm run test -w @civicledger/server",
     "db:migrate": "npm run db:migrate -w @civicledger/server",
     "db:seed": "npm run db:seed -w @civicledger/server"
   },

@@ -20,8 +20,8 @@
   },
   "_comment_optionalDeps": "Linux SWC binaries for @swc/core (used by the workflow build plugin) are pinned below so package-lock captures them for Linux CI; npm skips them on other platforms.",
   "optionalDependencies": {
-    "@swc/core-linux-x64-gnu": "1.15.3",
-    "@swc/core-linux-arm64-gnu": "1.15.3"
+    "@swc/core-linux-x64-gnu": "1.15.43",
+    "@swc/core-linux-arm64-gnu": "1.15.43"
   },
   "engines": {
     "node": ">=20"

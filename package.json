@@ -1,0 +1,23 @@
+{
+  "name": "civicledger",
+  "version": "0.1.0",
+  "private": true,
+  "description": "CivicLedger Phase 1 - Core Reporting & Triage (serverless monorepo)",
+  "workspaces": [
+    "shared",
+    "server",
+    "client"
+  ],
+  "scripts": {
+    "dev": "npm run dev -w @civicledger/client",
+    "build": "npm run build -w @civicledger/client",
+    "start": "npm run start -w @civicledger/client",
+    "lint": "npm run lint -w @civicledger/client",
+    "typecheck": "npm run typecheck -w @civicledger/shared && npm run typecheck -w @civicledger/server && npm run typecheck -w @civicledger/client",
+    "db:migrate": "npm run db:migrate -w @civicledger/server",
+    "db:seed": "npm run db:seed -w @civicledger/server"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

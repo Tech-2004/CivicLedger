@@ -1,7 +1,10 @@
-# dependencies
-/node_modules
+# dependencies (all workspaces)
+node_modules/
 /.pnp
 .pnp.*
+
+# vitest / vite cache
+.vite/
 
 # next.js
 /.next/
@@ -31,3 +34,6 @@ yarn-error.log*
 
 # typescript
 *.tsbuildinfo
+
+# local progress notes (not for the repo)
+.progress/

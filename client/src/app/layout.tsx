@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import Link from "next/link";
+import { Analytics } from "@vercel/analytics/next";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
 
@@ -36,6 +38,9 @@ export default function RootLayout({
         </header>
         <main className="container">{children}</main>
         <ServiceWorkerRegister />
+        {/* Vercel-native observability (no-ops off Vercel / in dev) */}
+        <Analytics />
+        <SpeedInsights />
       </body>
     </html>
   );

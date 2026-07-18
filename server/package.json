@@ -21,7 +21,7 @@
     "@civicledger/shared": "*",
     "@neondatabase/serverless": "^1.1.0",
     "@vercel/blob": "^2.6.1",
-    "zod": "^3.24.1"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^22.10.7",

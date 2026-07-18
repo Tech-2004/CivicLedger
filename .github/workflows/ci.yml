@@ -1,0 +1,55 @@
+name: CI
+
+# Runs on every PR into main (the protected branch) and on pushes to main.
+# The `ci` job is the hard gate: typecheck + production build across the
+# workspaces. Lint runs as a non-blocking step so style issues surface without
+# blocking merges.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Cancel superseded runs on the same ref (e.g. new push to a PR branch).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    env:
+      # Dummy values so module-load code (Neon client, NextAuth) doesn't throw
+      # during typecheck/build. Real values are injected at runtime on Vercel.
+      DATABASE_URL: postgres://user:pass@localhost:5432/civicledger
+      DATABASE_URL_UNPOOLED: postgres://user:pass@localhost:5432/civicledger
+      AUTH_SECRET: ci-dummy-secret-0000000000000000000000000000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck (shared + server + client)
+        run: npm run typecheck
+
+      - name: Build (Next.js + workflow bundles)
+        run: npm run build
+
+      - name: Lint (non-blocking)
+        continue-on-error: true
+        env:
+          ESLINT_USE_FLAT_CONFIG: "false"
+        run: npm run lint

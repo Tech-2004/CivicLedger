@@ -57,7 +57,7 @@ export async function POST(req: NextRequest) {
   });
 
   if (!result.duplicateOfSubmission) {
-    await start(triageWorkflow, result.reportId);
+    await start(triageWorkflow, [result.reportId]);
   }
 
   if (result.isEmergency) {

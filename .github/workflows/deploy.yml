@@ -1,0 +1,70 @@
+name: Deploy (Vercel)
+
+# Optional CD. This workflow stays DORMANT until the three Vercel secrets are
+# set in the repo (Settings -> Secrets and variables -> Actions):
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# If they're absent, every job no-ops. If you instead connect the repo via
+# Vercel's native Git integration, leave these secrets unset so this workflow
+# doesn't double-deploy.
+#
+# Behavior when enabled:
+#   - PRs into main   -> preview deployment
+#   - pushes to main  -> production deployment
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      IS_PROD: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Check for Vercel secrets
+        id: guard
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Vercel secrets not set - skipping deploy (use native Vercel Git integration or add the secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.guard.outputs.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        if: steps.guard.outputs.enabled == 'true'
+        run: npm i -g vercel@latest
+
+      - name: Pull Vercel environment
+        if: steps.guard.outputs.enabled == 'true'
+        run: |
+          vercel pull --yes \
+            --environment=${{ env.IS_PROD == 'true' && 'production' || 'preview' }} \
+            --token="$VERCEL_TOKEN"
+
+      - name: Build
+        if: steps.guard.outputs.enabled == 'true'
+        run: vercel build ${{ env.IS_PROD == 'true' && '--prod' || '' }} --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        if: steps.guard.outputs.enabled == 'true'
+        run: |
+          vercel deploy --prebuilt ${{ env.IS_PROD == 'true' && '--prod' || '' }} \
+            --token="$VERCEL_TOKEN"

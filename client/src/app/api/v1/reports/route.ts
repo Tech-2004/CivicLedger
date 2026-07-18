@@ -41,7 +41,7 @@ export async function POST(req: NextRequest) {
 
     // Enqueue the async triage workflow (idempotent submissions don't re-enqueue).
     if (!result.duplicateOfSubmission) {
-      await start(triageWorkflow, result.reportId);
+      await start(triageWorkflow, [result.reportId]);
     }
 
     // Emergency gate fired -> surface local emergency contact info instead of a

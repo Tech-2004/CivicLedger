@@ -1,0 +1,85 @@
+name: Deploy (Vercel)
+
+# Optional CD. Stays DORMANT until the three Vercel secrets are set in the repo
+# (Settings -> Secrets and variables -> Actions):
+#   VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
+# If absent, the job no-ops. Leave them unset if you use Vercel's native Git
+# integration instead (avoids double deploys).
+#
+# When enabled:
+#   - PRs into main   -> "preview"    environment
+#   - pushes to main  -> "production" environment (add required reviewers on the
+#                        Environment in repo settings to gate prod behind approval)
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+# Never cancel an in-flight deploy for the same target.
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment:
+      name: ${{ github.ref == 'refs/heads/main' && 'production' || 'preview' }}
+      url: ${{ steps.deploy.outputs.url }}
+    env:
+      VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
+      VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+      VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
+      IS_PROD: ${{ github.ref == 'refs/heads/main' }}
+    steps:
+      - name: Check for Vercel secrets
+        id: guard
+        run: |
+          if [ -n "$VERCEL_TOKEN" ] && [ -n "$VERCEL_ORG_ID" ] && [ -n "$VERCEL_PROJECT_ID" ]; then
+            echo "enabled=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "enabled=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::Vercel secrets not set - skipping deploy (use native Vercel Git integration or add the secrets)."
+          fi
+
+      - name: Checkout
+        if: steps.guard.outputs.enabled == 'true'
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        if: steps.guard.outputs.enabled == 'true'
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install Vercel CLI
+        if: steps.guard.outputs.enabled == 'true'
+        run: npm i -g vercel@latest
+
+      - name: Pull Vercel environment
+        if: steps.guard.outputs.enabled == 'true'
+        run: |
+          vercel pull --yes \
+            --environment=${{ env.IS_PROD == 'true' && 'production' || 'preview' }} \
+            --token="$VERCEL_TOKEN"
+
+      - name: Build
+        if: steps.guard.outputs.enabled == 'true'
+        run: vercel build ${{ env.IS_PROD == 'true' && '--prod' || '' }} --token="$VERCEL_TOKEN"
+
+      - name: Deploy
+        id: deploy
+        if: steps.guard.outputs.enabled == 'true'
+        run: |
+          URL=$(vercel deploy --prebuilt ${{ env.IS_PROD == 'true' && '--prod' || '' }} --token="$VERCEL_TOKEN")
+          echo "url=$URL" >> "$GITHUB_OUTPUT"
+          echo "Deployed to: $URL"

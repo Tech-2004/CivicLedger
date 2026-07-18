@@ -1,0 +1,114 @@
+name: CI
+
+# Hard gate for the protected `main` branch.
+#   ci  -> lint (blocking) + typecheck + unit tests + production build
+#   db  -> runs the real migrations + seed against Postgres (PostGIS + pgvector)
+# Both are wired as required status checks in branch protection.
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Least privilege: workflow only needs to read the repo.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref (e.g. new push to a PR branch).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      # Dummy values so module-load code (Neon client, NextAuth) doesn't throw
+      # during typecheck/build. Real values are injected at runtime on Vercel.
+      DATABASE_URL: postgres://user:pass@localhost:5432/civicledger
+      DATABASE_URL_UNPOOLED: postgres://user:pass@localhost:5432/civicledger
+      AUTH_SECRET: ci-dummy-secret-0000000000000000000000000000
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      NEXT_TELEMETRY_DISABLED: "1"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Cache Next.js build cache
+        uses: actions/cache@v4
+        with:
+          path: client/.next/cache
+          key: ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-${{ hashFiles('client/src/**/*.[jt]s', 'client/src/**/*.[jt]sx') }}
+          restore-keys: |
+            ${{ runner.os }}-nextjs-${{ hashFiles('package-lock.json') }}-
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Lint
+        env:
+          ESLINT_USE_FLAT_CONFIG: "false"
+        run: npm run lint
+
+      - name: Typecheck (shared + server + client)
+        run: npm run typecheck
+
+      - name: Unit tests
+        run: npm test
+
+      - name: Build (Next.js + workflow bundles)
+        run: npm run build
+
+  db:
+    name: db
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Start Postgres (PostGIS + pgvector)
+        run: |
+          docker run -d --name civic-pg \
+            -e POSTGRES_PASSWORD=postgres \
+            -e POSTGRES_USER=postgres \
+            -e POSTGRES_DB=civicledger \
+            -p 5432:5432 \
+            postgis/postgis:16-3.4
+          echo "Waiting for Postgres to accept connections..."
+          for i in $(seq 1 45); do
+            if docker exec civic-pg pg_isready -U postgres -d civicledger >/dev/null 2>&1; then
+              echo "ready"; break
+            fi
+            sleep 2
+          done
+          # pgvector isn't in the PostGIS image; install it from PGDG so
+          # `CREATE EXTENSION vector` in the migrations succeeds.
+          docker exec civic-pg bash -lc "apt-get update -qq && apt-get install -y -qq postgresql-16-pgvector"
+
+      - name: Run migrations + seed (validates schema, RLS, extensions)
+        env:
+          DATABASE_URL: postgres://postgres:postgres@localhost:5432/civicledger
+          DATABASE_URL_UNPOOLED: postgres://postgres:postgres@localhost:5432/civicledger
+        run: |
+          npm run db:migrate
+          npm run db:seed

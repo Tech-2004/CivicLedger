@@ -1,0 +1,7 @@
+# next.js build output
+/.next/
+/out/
+
+# workflow devkit + swc cache
+/.swc
+/.well-known/

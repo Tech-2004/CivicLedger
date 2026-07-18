@@ -10,15 +10,35 @@
 //
 // RLS design lives in server/db/migrations/0002_rls.sql.
 
-import { neon, Pool, type PoolClient } from "@neondatabase/serverless";
+import pg from "pg";
+const { Pool } = pg;
+import type { PoolClient } from "pg";
 import { env } from "./env";
 
-// ---- one-shot HTTP query (no RLS session) --------------------------------
-export const sql = neon(env.databaseUrl);
+// ---- one-shot query mimicking Neon's sql (no RLS session) ----------------
+export const sql = Object.assign(
+  async (strings: TemplateStringsArray | string, ...values: any[]) => {
+    const poolInstance = pool();
+    if (typeof strings === "string") {
+      const res = await poolInstance.query(strings, values);
+      return res.rows;
+    }
+    let text = "";
+    for (let i = 0; i < strings.length; i++) {
+      text += strings[i];
+      if (i < values.length) {
+        text += `$${i + 1}`;
+      }
+    }
+    const res = await poolInstance.query(text, values);
+    return res.rows;
+  },
+  {}
+);
 
 // ---- pooled sessions for RLS-scoped work ---------------------------------
-let _pool: Pool | null = null;
-function pool(): Pool {
+let _pool: pg.Pool | null = null;
+function pool(): pg.Pool {
   if (!_pool) {
     _pool = new Pool({ connectionString: env.databaseUrl });
   }

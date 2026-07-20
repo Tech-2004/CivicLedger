@@ -46,7 +46,8 @@ async function main() {
       console.log(`skip   ${file}`);
       continue;
     }
-    const sql = readFileSync(join(migrationsDir, file), "utf8");
+    let sql = readFileSync(join(migrationsDir, file), "utf8");
+    sql = sql.replace(/\$\{CIVIC_APP_PASSWORD\}/g, process.env.DATABASE_PASSWORD);
     console.log(`apply  ${file}`);
     await client.query("BEGIN");
     try {

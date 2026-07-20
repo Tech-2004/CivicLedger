@@ -12,7 +12,9 @@
 DO $$
 BEGIN
   IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'civic_app') THEN
-    CREATE ROLE civic_app LOGIN;
+    CREATE ROLE civic_app LOGIN PASSWORD '${CIVIC_APP_PASSWORD}';
+  ELSE
+    ALTER ROLE civic_app WITH PASSWORD '${CIVIC_APP_PASSWORD}';
   END IF;
 END
 $$;

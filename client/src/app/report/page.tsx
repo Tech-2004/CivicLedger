@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { upload } from "@vercel/blob/client";
+
 
 const DRAFT_KEY = "civicledger:draft";
 
@@ -79,11 +79,30 @@ export default function ReportPage() {
     setBusy(true);
     setError(null);
     try {
-      const blob = await upload(file.name, file, {
-        access: "public",
-        handleUploadUrl: "/api/v1/upload",
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${Date.now()}-${Math.random().toString(36).substring(2, 15)}.${fileExt}`;
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+      const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !anonKey) {
+        throw new Error("Supabase credentials not configured in environment");
+      }
+
+      const res = await fetch(`${supabaseUrl}/storage/v1/object/civicledger-media/${fileName}`, {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${anonKey}`,
+          "Content-Type": file.type,
+        },
+        body: file,
       });
-      setPhotoUrl(blob.url);
+
+      if (!res.ok) {
+        throw new Error("Upload failed");
+      }
+
+      const publicUrl = `${supabaseUrl}/storage/v1/object/public/civicledger-media/${fileName}`;
+      setPhotoUrl(publicUrl);
     } catch {
       setError("Photo upload failed. You can still submit without a photo.");
     } finally {

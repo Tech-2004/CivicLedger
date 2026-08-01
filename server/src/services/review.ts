@@ -8,6 +8,7 @@
 
 import { withRls, withSystem } from "../db";
 import { appendEvent } from "../domain/audit";
+import { reviewerContext } from "./shared/rlsContext";
 import {
   stepClassify,
   stepDedup,
@@ -19,14 +20,6 @@ import type {
   OperatorIdentity,
   ReviewAction,
 } from "@civicledger/shared";
-
-function ctxOf(identity: OperatorIdentity) {
-  return {
-    role: identity.role as "reviewer" | "admin",
-    jurisdictionId: identity.jurisdictionId,
-    departmentId: identity.departmentId,
-  } as const;
-}
 
 export interface ReviewQueueItem {
   id: string;
@@ -46,7 +39,7 @@ export interface ReviewQueueItem {
 export async function listReviewQueue(
   identity: OperatorIdentity,
 ): Promise<ReviewQueueItem[]> {
-  return withRls(ctxOf(identity), (db) =>
+  return withRls(reviewerContext(identity), (db) =>
     db.query<ReviewQueueItem>(
       `SELECT id,
               CASE WHEN moderation_status = 'FLAGGED' THEN 'flagged_content'
@@ -88,7 +81,7 @@ export async function applyReviewAction(
 ): Promise<{ ok: boolean; error?: string }> {
   // Record the human action in the RLS-scoped context first (audit + writes
   // the reviewer is authorized for).
-  await withRls(ctxOf(identity), async (db) => {
+  await withRls(reviewerContext(identity), async (db) => {
     switch (action.action) {
       case "approve":
         await db.query(

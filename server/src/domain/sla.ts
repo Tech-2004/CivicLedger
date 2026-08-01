@@ -10,6 +10,37 @@ export function computeSlaDeadline(
   return new Date(from.getTime() + slaHours * 3600 * 1000);
 }
 
+/** Statuses that stop the SLA clock. */
+export const TERMINAL_CASE_STATUSES = [
+  "RESOLVED",
+  "WONT_FIX",
+] as const satisfies readonly CaseStatus[];
+
+export function isTerminalStatus(status: CaseStatus): boolean {
+  return (TERMINAL_CASE_STATUSES as readonly CaseStatus[]).includes(status);
+}
+
+function toDate(value: Date | string): Date {
+  return value instanceof Date ? value : new Date(value);
+}
+
+/**
+ * Whether a case has breached its SLA.
+ *
+ * Mirrors the SQL predicate in db/migrations/0003_rollups.sql
+ * (`status NOT IN ('RESOLVED','WONT_FIX') AND sla_deadline < now()`) - keep the
+ * two definitions in sync so the dashboard tiles and the list views agree.
+ */
+export function isOverdue(
+  status: CaseStatus,
+  slaDeadline: Date | string | null,
+  now: Date = new Date(),
+): boolean {
+  if (isTerminalStatus(status)) return false;
+  if (!slaDeadline) return false;
+  return now.getTime() > toDate(slaDeadline).getTime();
+}
+
 /**
  * Maps a case to an SLA badge:
  *   resolved  -> terminal states
@@ -23,12 +54,11 @@ export function slaBadge(
   createdAt: Date | string,
   now: Date = new Date(),
 ): SlaBadge {
-  if (status === "RESOLVED" || status === "WONT_FIX") return "resolved";
+  if (isTerminalStatus(status)) return "resolved";
   if (!slaDeadline) return "on_track";
 
-  const deadline =
-    slaDeadline instanceof Date ? slaDeadline : new Date(slaDeadline);
-  const created = createdAt instanceof Date ? createdAt : new Date(createdAt);
+  const deadline = toDate(slaDeadline);
+  const created = toDate(createdAt);
 
   if (now.getTime() > deadline.getTime()) return "overdue";
 

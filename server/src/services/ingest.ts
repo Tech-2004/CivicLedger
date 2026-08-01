@@ -6,7 +6,7 @@
 // Enqueueing the workflow happens in the route handler (client app) so the
 // dependency direction stays client -> server.
 
-import { withSystem } from "../db";
+import { withSystem, type Db } from "../db";
 import { env } from "../env";
 import { detectEmergency } from "../domain/emergency";
 import { appendEvent } from "../domain/audit";
@@ -39,9 +39,7 @@ export interface IngestResult {
  * so we assign the earliest-created jurisdiction as the default tenant. Swap
  * this for a PostGIS point-in-polygon lookup when boundaries land.
  */
-async function resolveDefaultJurisdiction(
-  db: import("../db").Db,
-): Promise<string | null> {
+async function resolveDefaultJurisdiction(db: Db): Promise<string | null> {
   const row = await db.one<{ id: string }>(
     `SELECT id FROM jurisdictions ORDER BY created_at ASC LIMIT 1`,
   );

@@ -5,6 +5,7 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
 import { SiteNav } from "@/components/SiteNav";
+import { getOperator } from "@/lib/session";
 
 export const metadata: Metadata = {
   title: "CivicLedger",
@@ -17,11 +18,13 @@ export const viewport: Viewport = {
   themeColor: "#0a0a0b",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
+  const operator = await getOperator();
+
   return (
     <html lang="en">
       <body>
@@ -30,7 +33,12 @@ export default function RootLayout({
             <Link href="/" style={{ fontWeight: 700, color: "var(--text)" }}>
               CivicLedger
             </Link>
-            <SiteNav />
+            <SiteNav
+              isOperator={operator !== null}
+              canReview={
+                operator?.role === "reviewer" || operator?.role === "admin"
+              }
+            />
           </div>
         </header>
         <main className="container">{children}</main>

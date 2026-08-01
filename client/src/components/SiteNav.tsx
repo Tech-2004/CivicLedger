@@ -1,22 +1,39 @@
+"use client";
+
 import Link from "next/link";
-import { getOperator } from "@/lib/session";
+import { usePathname } from "next/navigation";
 
 /**
- * Header navigation. Operator-only destinations are hidden from the public, and
- * the review queue only appears for the roles that can use it.
+ * Header navigation.
  *
- * This is presentation only - the real enforcement is the middleware redirect
- * plus `requireOperator` in each route handler and RLS in the database.
+ * On the landing page the public links are hidden: the hero already offers
+ * "Report an issue" and "View the public dashboard" as primary actions, so
+ * repeating them in the header competes with them for attention. Interior pages
+ * keep the full nav, since that is the only way to move between them.
+ *
+ * Takes booleans rather than the operator object so internal ids (jurisdiction,
+ * department) are not serialised into the HTML just to render a menu. This is
+ * presentation only - real enforcement is the middleware redirect,
+ * requireOperator in each route handler, and RLS in the database.
  */
-export async function SiteNav() {
-  const operator = await getOperator();
-  const canReview = operator?.role === "reviewer" || operator?.role === "admin";
+export function SiteNav({
+  isOperator,
+  canReview,
+}: {
+  isOperator: boolean;
+  canReview: boolean;
+}) {
+  const isLanding = usePathname() === "/";
 
   return (
     <nav>
-      <Link href="/report">Report</Link>
-      <Link href="/dashboard">Dashboard</Link>
-      {operator ? (
+      {!isLanding && (
+        <>
+          <Link href="/report">Report</Link>
+          <Link href="/dashboard">Dashboard</Link>
+        </>
+      )}
+      {isOperator ? (
         <>
           <Link href="/console">Console</Link>
           {canReview && <Link href="/review">Review</Link>}

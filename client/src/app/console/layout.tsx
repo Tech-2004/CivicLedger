@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getOperator } from "@/lib/session";
+import { SignOutButton } from "@/components/auth/SignOutButton";
 
 export const runtime = "nodejs";
 
@@ -13,19 +14,18 @@ export default async function ConsoleLayout({
   return (
     <div>
       {operator ? (
-        <div
-          className="row"
-          style={{ marginBottom: 16, justifyContent: "space-between" }}
-        >
-          <div className="row">
+        <div className="console-bar">
+          <nav className="row">
             <Link href="/console">Cases</Link>
             {(operator.role === "reviewer" || operator.role === "admin") && (
               <Link href="/review">Review queue</Link>
             )}
+          </nav>
+          <div className="row console-bar-identity">
+            <span className="muted">{operator.email}</span>
+            <span className="role-chip">{operator.role}</span>
+            <SignOutButton />
           </div>
-          <span className="muted">
-            {operator.email} ({operator.role})
-          </span>
         </div>
       ) : (
         <p className="muted">

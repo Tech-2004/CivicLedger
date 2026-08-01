@@ -11,7 +11,7 @@ export function DashboardHeader() {
           height="24"
           viewBox="0 0 24 24"
           fill="none"
-          stroke="#58a6ff"
+          stroke="#ededef"
           strokeWidth="2"
           strokeLinecap="round"
           strokeLinejoin="round"
@@ -35,9 +35,8 @@ export function DashboardHeader() {
         placeholder="Search..."
       />
       <div className="dash-header-user">
-        Welcome, Springfield Citizen! (Not Signed In){" "}
-        <Link href="/console" style={{ color: "#58a6ff", marginLeft: 8 }}>
-          Sign In
+        <Link href="/console/sign-in" style={{ color: "#ededef", marginLeft: 8 }}>
+          Staff sign-in
         </Link>
       </div>
     </header>

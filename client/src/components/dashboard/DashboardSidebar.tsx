@@ -70,19 +70,21 @@ export function DashboardSidebar({
       </div>
       <div className="recent-reports">
         {cases.slice(0, 10).map((c) => {
-          const statusColor =
+          // Monochrome status markers - see the status scale in dashboard.css.
+          const statusClass =
             c.status === "RESOLVED"
-              ? "status-green"
+              ? "status-resolved"
               : c.status === "IN_PROGRESS"
-              ? "status-orange"
-              : "status-red";
+                ? "status-progress"
+                : "status-new";
 
           return (
             <div className="report-card" key={c.id}>
               <div
                 className="report-img"
                 style={{
-                  background: `linear-gradient(45deg, #1f242c, #30363d)`,
+                  background:
+                    "linear-gradient(45deg, var(--panel-2), var(--panel-3))",
                 }}
               ></div>
               <div className="report-info">
@@ -94,7 +96,7 @@ export function DashboardSidebar({
                   {c.location?.lng?.toFixed(4)}
                 </div>
                 <div className="report-status">
-                  <span className={`status-dot ${statusColor}`}></span>
+                  <span className={`status-dot ${statusClass}`}></span>
                   {c.status.replace("_", " ")}
                 </div>
               </div>

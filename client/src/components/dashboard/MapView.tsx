@@ -11,13 +11,13 @@ export function MapView({ cases }: MapViewProps) {
     <div className="map-container">
       <div className="map-legend">
         <div>
-          <span className="status-dot status-red"></span> Awaiting Triage
+          <span className="status-dot status-new"></span> Awaiting Triage
         </div>
         <div>
-          <span className="status-dot status-orange"></span> In Progress
+          <span className="status-dot status-progress"></span> In Progress
         </div>
         <div>
-          <span className="status-dot status-green"></span> Resolved
+          <span className="status-dot status-resolved"></span> Resolved
         </div>
       </div>
 
@@ -28,22 +28,20 @@ export function MapView({ cases }: MapViewProps) {
         const top = 10 + (hash % 80);
         const left = 10 + ((hash * 3) % 80);
 
-        const statusColor =
+        // Monochrome: the pin's brightness carries the status, matching the
+        // legend above. Styling lives in dashboard.css rather than inline.
+        const statusClass =
           c.status === "RESOLVED"
-            ? "#2ea043"
+            ? "status-resolved"
             : c.status === "IN_PROGRESS"
-            ? "#d29922"
-            : "#f85149";
+              ? "status-progress"
+              : "status-new";
 
         return (
           <div
             key={c.id}
-            className="map-pin"
-            style={{
-              top: `${top}%`,
-              left: `${left}%`,
-              backgroundColor: statusColor,
-            }}
+            className={`map-pin ${statusClass}`}
+            style={{ top: `${top}%`, left: `${left}%` }}
             title={`${c.category} - ${c.status}`}
           />
         );

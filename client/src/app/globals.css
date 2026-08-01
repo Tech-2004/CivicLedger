@@ -1,14 +1,47 @@
+/* ==========================================================================
+   CivicLedger - monochrome theme
+   --------------------------------------------------------------------------
+   Hue is reserved for meaning, not decoration. All chrome (surfaces, borders,
+   links, buttons, badges) is greyscale and builds hierarchy from VALUE and
+   weight instead of colour.
+
+   The one deliberate exception is the emergency banner, which stays red.
+   Colour is a life-safety affordance there, and it is paired with text rather
+   than used alone, so it does not rely on colour perception by itself.
+   ========================================================================== */
+
 :root {
-  --bg: #0b0f14;
-  --panel: #131a22;
-  --panel-2: #1a232d;
-  --text: #e6edf3;
-  --muted: #9aa7b2;
-  --accent: #3b82f6;
+  /* Surfaces, darkest to lightest */
+  --bg: #0a0a0b;
+  --panel: #121214;
+  --panel-2: #1a1a1d;
+  --panel-3: #232327;
+
+  /* Text */
+  --text: #ededef;
+  --muted: #98989f;
+  --border: #2b2b30;
+  --border-strong: #3a3a41;
+
+  /* Primary action: a light surface with dark ink. Highest contrast available
+     on a dark UI without introducing a hue. */
+  --accent: #ededef;
+  --accent-hover: #ffffff;
+  --accent-ink: #101012;
+
+  --link: #cfcfd4;
+
+  /* Semantic. Only the emergency path uses these; kept as tokens so a future
+     alert surface does not have to reinvent them. */
+  --danger: #ef4444;
+  --danger-soft: rgba(239, 68, 68, 0.14);
+  --danger-text: #fca5a5;
+
+  /* Retained for compatibility with any existing consumer. Not used by the
+     monochrome badge styles below. */
   --ok: #22c55e;
   --warn: #f59e0b;
   --bad: #ef4444;
-  --border: #263340;
 }
 
 * {
@@ -25,13 +58,15 @@ body {
     Helvetica, Arial, sans-serif;
   font-size: 15px;
   line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
 }
 
 a {
-  color: var(--accent);
+  color: var(--link);
   text-decoration: none;
 }
 a:hover {
+  color: var(--text);
   text-decoration: underline;
 }
 
@@ -63,6 +98,7 @@ header.site nav {
 h1 {
   font-size: 24px;
   margin: 0 0 4px;
+  letter-spacing: -0.01em;
 }
 h2 {
   font-size: 18px;
@@ -86,6 +122,10 @@ h2 {
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
 }
 
+/* ==========================================================================
+   Forms
+   ========================================================================== */
+
 label {
   display: block;
   font-size: 13px;
@@ -104,19 +144,43 @@ button {
   padding: 9px 11px;
   width: 100%;
 }
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
 button {
   cursor: pointer;
   background: var(--accent);
   border-color: var(--accent);
-  color: white;
+  color: var(--accent-ink);
   font-weight: 600;
   width: auto;
+}
+button:hover:not(:disabled) {
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
+}
+button:disabled {
+  opacity: 0.55;
+  cursor: default;
 }
 button.secondary {
   background: var(--panel-2);
   color: var(--text);
   border-color: var(--border);
 }
+button.secondary:hover:not(:disabled) {
+  background: var(--panel-3);
+  border-color: var(--border-strong);
+}
+
+/* ==========================================================================
+   Tables
+   ========================================================================== */
 
 table {
   width: 100%;
@@ -129,6 +193,22 @@ td {
   padding: 8px 10px;
   border-bottom: 1px solid var(--border);
 }
+th {
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* ==========================================================================
+   Badges
+   --------------------------------------------------------------------------
+   Ranked by visual weight rather than hue, so urgency still reads at a glance:
+   overdue inverts to a light fill, at_risk is a raised outline, on_track is
+   quiet, resolved recedes furthest. Each is always accompanied by its label, so
+   the state is never conveyed by styling alone.
+   ========================================================================== */
 
 .badge {
   display: inline-block;
@@ -136,38 +216,354 @@ td {
   border-radius: 999px;
   font-size: 12px;
   font-weight: 600;
-}
-.badge.on_track {
-  background: rgba(34, 197, 94, 0.15);
-  color: var(--ok);
-}
-.badge.at_risk {
-  background: rgba(245, 158, 11, 0.15);
-  color: var(--warn);
+  border: 1px solid transparent;
 }
 .badge.overdue {
-  background: rgba(239, 68, 68, 0.15);
-  color: var(--bad);
+  background: var(--accent);
+  color: var(--accent-ink);
+  border-color: var(--accent);
+}
+.badge.at_risk {
+  background: var(--panel-3);
+  color: var(--text);
+  border-color: var(--border-strong);
+}
+.badge.on_track {
+  background: var(--panel-2);
+  color: var(--muted);
+  border-color: var(--border);
 }
 .badge.resolved {
-  background: rgba(154, 167, 178, 0.15);
+  background: transparent;
   color: var(--muted);
+  border-color: var(--border);
 }
+
+/* ==========================================================================
+   Banners
+   ========================================================================== */
 
 .banner {
   border-radius: 10px;
   padding: 14px 16px;
   margin-bottom: 16px;
   font-weight: 600;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
 }
+/* Deliberately not monochrome - see the note at the top of this file. */
 .banner.emergency {
-  background: rgba(239, 68, 68, 0.15);
-  border: 1px solid var(--bad);
-  color: #fecaca;
+  background: var(--danger-soft);
+  border: 1px solid var(--danger);
+  color: var(--danger-text);
 }
+
 .row {
   display: flex;
   gap: 10px;
   align-items: center;
   flex-wrap: wrap;
+}
+
+/* ==========================================================================
+   Buttons (composed variants)
+   ========================================================================== */
+
+.btn-compact {
+  padding: 5px 10px;
+  font-size: 13px;
+}
+
+.btn-primary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 11px 20px;
+  border-radius: 8px;
+  border: 1px solid transparent;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+  text-decoration: none;
+}
+.btn-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-ink);
+}
+.btn-primary:hover {
+  background: var(--accent-hover);
+  color: var(--accent-ink);
+  text-decoration: none;
+}
+.btn-ghost {
+  background: transparent;
+  border-color: var(--border-strong);
+  color: var(--text);
+}
+.btn-ghost:hover {
+  background: var(--panel-2);
+  color: var(--text);
+  text-decoration: none;
+}
+
+/* Google requires its mark to keep its own colours on a light surface, so this
+   button is intentionally exempt from the monochrome scheme. */
+.btn-google {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 8px;
+  background: #fff;
+  color: #1f1f1f;
+  border: 1px solid #dadce0;
+  font-weight: 600;
+  font-size: 15px;
+  cursor: pointer;
+}
+.btn-google:hover:not(:disabled) {
+  background: #f2f2f3;
+}
+.btn-google:disabled {
+  opacity: 0.65;
+  cursor: default;
+}
+
+/* ==========================================================================
+   Sign-in
+   ========================================================================== */
+
+.auth-shell {
+  max-width: 400px;
+  margin: 40px auto 0;
+}
+
+.auth-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 28px;
+}
+
+.auth-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.auth-title {
+  font-size: 22px;
+  margin: 0 0 8px;
+}
+
+.auth-subtitle {
+  font-size: 14px;
+  margin: 0 0 22px;
+}
+
+.auth-error {
+  background: var(--panel-2);
+  border: 1px solid var(--border-strong);
+  border-left: 3px solid var(--accent);
+  color: var(--text);
+  border-radius: 8px;
+  padding: 11px 13px;
+  font-size: 14px;
+  font-weight: 500;
+  margin-bottom: 18px;
+}
+
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 22px 0 4px;
+  color: var(--muted);
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+.auth-divider::before,
+.auth-divider::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+.auth-foot {
+  text-align: center;
+  font-size: 14px;
+  margin-top: 20px;
+}
+
+/* ==========================================================================
+   Console bar
+   ========================================================================== */
+
+.console-bar {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  padding-bottom: 14px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--border);
+}
+.console-bar-identity {
+  font-size: 14px;
+}
+
+.role-chip {
+  padding: 2px 9px;
+  border-radius: 999px;
+  background: var(--panel-3);
+  color: var(--text);
+  border: 1px solid var(--border-strong);
+  font-size: 12px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* ==========================================================================
+   Landing page
+   ========================================================================== */
+
+.hero {
+  padding: 48px 0 40px;
+  border-bottom: 1px solid var(--border);
+}
+
+.hero-eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 14px;
+}
+
+.hero-title {
+  font-size: 42px;
+  line-height: 1.12;
+  letter-spacing: -0.025em;
+  margin: 0 0 16px;
+}
+
+.hero-lede {
+  font-size: 17px;
+  line-height: 1.6;
+  color: var(--muted);
+  max-width: 60ch;
+  margin: 0 0 28px;
+}
+
+.hero-actions {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.hero-note {
+  font-size: 14px;
+  margin: 18px 0 0;
+}
+
+.steps {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  padding: 36px 0;
+}
+
+.step-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 18px;
+}
+
+.step-n {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.step-title {
+  font-size: 16px;
+  margin: 8px 0 6px;
+}
+
+.step-body {
+  font-size: 14px;
+  margin: 0;
+}
+
+.promise {
+  border-top: 1px solid var(--border);
+  padding: 32px 0 8px;
+}
+
+.promise-title {
+  font-size: 20px;
+  margin: 0 0 16px;
+}
+
+.promise-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+}
+.promise-list li {
+  position: relative;
+  padding-left: 22px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.55;
+}
+.promise-list li::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 7px;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--border-strong);
+}
+.promise-list strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 32px 0 28px;
+  }
+  .hero-title {
+    font-size: 31px;
+  }
+  .hero-lede {
+    font-size: 16px;
+  }
+  .btn-primary,
+  .btn-ghost {
+    width: 100%;
+  }
 }

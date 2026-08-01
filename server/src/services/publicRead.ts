@@ -3,6 +3,7 @@
 
 import { withPublic } from "../db";
 import { slaBadge } from "../domain/sla";
+import { SqlFilters } from "./shared/sqlFilters";
 import type {
   CaseStatus,
   Category,
@@ -47,22 +48,14 @@ export async function listPublicCases(
   filters: PublicFilters,
 ): Promise<PublicCase[]> {
   return withPublic(async (db) => {
-    const where: string[] = [];
-    const params: unknown[] = [];
-    if (filters.category) {
-      params.push(filters.category);
-      where.push(`category = $${params.length}`);
-    }
-    if (filters.status) {
-      params.push(filters.status);
-      where.push(`status = $${params.length}`);
-    }
-    if (filters.jurisdictionId) {
-      params.push(filters.jurisdictionId);
-      where.push(`jurisdiction_id = $${params.length}`);
-    }
-    params.push(filters.limit);
-    params.push(filters.offset);
+    const sqlFilters = new SqlFilters()
+      .eq("category", filters.category)
+      .eq("status", filters.status)
+      .eq("jurisdiction_id", filters.jurisdictionId);
+
+    // Bound after the WHERE values so the placeholder numbers line up.
+    const limit = sqlFilters.bind(filters.limit);
+    const offset = sqlFilters.bind(filters.offset);
 
     const rows = await db.query<CaseRow>(
       `SELECT id, category, status, report_count, sla_deadline, created_at,
@@ -70,10 +63,10 @@ export async function listPublicCases(
               ST_Y(primary_location::geometry) AS lat,
               ST_X(primary_location::geometry) AS lng
        FROM cases
-       ${where.length ? "WHERE " + where.join(" AND ") : ""}
+       ${sqlFilters.whereClause()}
        ORDER BY created_at DESC
-       LIMIT $${params.length - 1} OFFSET $${params.length}`,
-      params,
+       LIMIT ${limit} OFFSET ${offset}`,
+      sqlFilters.params(),
     );
     return rows.map(toPublicCase);
   });

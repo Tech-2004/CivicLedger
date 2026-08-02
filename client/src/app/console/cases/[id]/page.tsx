@@ -2,6 +2,14 @@
 
 import { use, useCallback, useEffect, useState } from "react";
 import { RESOLUTION_REASON_CODES } from "@civicledger/shared";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 
 interface Detail {
   case: Record<string, unknown>;
@@ -22,7 +30,7 @@ export default function ConsoleCaseDetail({
   const load = useCallback(async () => {
     const res = await fetch(`/api/v1/console/cases/${id}`);
     if (res.ok) setDetail(await res.json());
-    else setMsg("Could not load case (permission or not found).");
+    else setMsg("Could not load case (permission denied, or it doesn't exist).");
   }, [id]);
 
   useEffect(() => {
@@ -59,58 +67,84 @@ export default function ConsoleCaseDetail({
     if (res.ok) load();
   }
 
-  if (!detail) return <p className="muted">{msg ?? "Loading..."}</p>;
+  if (!detail) {
+    return (
+      <p className="text-sm text-muted-foreground">{msg ?? "Loading…"}</p>
+    );
+  }
+
   const c = detail.case;
 
   return (
-    <div>
-      <h1 style={{ textTransform: "capitalize" }}>
-        {String(c.category)} case
-      </h1>
-      {msg && <div className="banner" style={{ background: "var(--panel-2)" }}>{msg}</div>}
+    <>
+      <PageHeader title={`${String(c.category)} case`} />
 
-      <div className="card">
-        <p>
-          <strong>Status:</strong> {String(c.status)}
-        </p>
-        <div className="row">
-          <button className="secondary" onClick={() => setStatus("IN_PROGRESS")}>
-            Mark in progress
-          </button>
-          <button className="secondary" onClick={() => setStatus("OPEN")}>
-            Reopen
-          </button>
-        </div>
-      </div>
+      {msg && (
+        <Alert variant="notice" className="mb-4">
+          {msg}
+        </Alert>
+      )}
 
-      <h2>Reports ({detail.reports.length})</h2>
-      {detail.reports.map((r) => (
-        <div className="card" key={String(r.id)}>
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span>{String(r.description ?? "(no description)")}</span>
-            <span className="muted">{String(r.source_channel)}</span>
-          </div>
-          <p className="muted">
-            moderation: {String(r.moderation_status)} · routing:{" "}
-            {String(r.routing_path ?? "-")} · confidence:{" "}
-            {String(r.classification_confidence ?? "-")}
+      <Card className="mb-6">
+        <CardContent className="p-5 pt-5">
+          <p className="text-sm">
+            <span className="text-muted-foreground">Status: </span>
+            <span className="font-medium">{String(c.status)}</span>
           </p>
-        </div>
-      ))}
+          <div className="mt-3 flex flex-wrap gap-2">
+            <Button
+              variant="secondary"
+              onClick={() => setStatus("IN_PROGRESS")}
+            >
+              Mark in progress
+            </Button>
+            <Button variant="secondary" onClick={() => setStatus("OPEN")}>
+              Reopen
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
+      <h2 className="mb-3 text-base font-semibold">
+        Reports ({detail.reports.length})
+      </h2>
+      <div className="mb-6 flex flex-col gap-3">
+        {detail.reports.map((r) => (
+          <Card key={String(r.id)}>
+            <CardContent className="p-4 pt-4">
+              <div className="flex items-start justify-between gap-3">
+                <span className="text-sm">
+                  {String(r.description ?? "(no description)")}
+                </span>
+                <span className="shrink-0 text-xs text-muted-foreground">
+                  {String(r.source_channel)}
+                </span>
+              </div>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                moderation: {String(r.moderation_status)} · routing:{" "}
+                {String(r.routing_path ?? "—")} · confidence:{" "}
+                {String(r.classification_confidence ?? "—")}
+              </p>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
       <NoteForm onAdd={addNote} />
       <ResolveForm onResolve={resolve} />
 
-      <h2>Audit timeline</h2>
-      <div className="card">
-        {detail.events.map((e, i) => (
-          <p key={i} className="muted">
-            {new Date(String(e.created_at)).toLocaleString()} —{" "}
-            {String(e.event_type)}
-          </p>
-        ))}
-      </div>
-    </div>
+      <h2 className="mb-3 text-base font-semibold">Audit timeline</h2>
+      <Card>
+        <CardContent className="flex flex-col gap-1.5 p-5 pt-5">
+          {detail.events.map((e, i) => (
+            <p key={i} className="text-xs text-muted-foreground">
+              {new Date(String(e.created_at)).toLocaleString()} —{" "}
+              {String(e.event_type)}
+            </p>
+          ))}
+        </CardContent>
+      </Card>
+    </>
   );
 }
 
@@ -121,30 +155,38 @@ function NoteForm({
 }) {
   const [body, setBody] = useState("");
   const [isPublic, setIsPublic] = useState(false);
+
   return (
-    <div className="card">
-      <h2 style={{ marginTop: 0 }}>Add note</h2>
-      <textarea rows={3} value={body} onChange={(e) => setBody(e.target.value)} />
-      <label className="row" style={{ marginTop: 8 }}>
-        <input
-          type="checkbox"
-          style={{ width: "auto" }}
-          checked={isPublic}
-          onChange={(e) => setIsPublic(e.target.checked)}
+    <Card className="mb-4">
+      <CardContent className="p-5 pt-5">
+        <h2 className="mb-3 text-base font-semibold">Add note</h2>
+        <Textarea
+          rows={3}
+          value={body}
+          onChange={(e) => setBody(e.target.value)}
+          placeholder="Internal by default."
         />
-        <span>Public update (visible on the dashboard)</span>
-      </label>
-      <div style={{ marginTop: 10 }}>
-        <button
+        <label className="mt-3 flex cursor-pointer items-center gap-2 text-sm">
+          <input
+            type="checkbox"
+            className="size-4 accent-primary"
+            checked={isPublic}
+            onChange={(e) => setIsPublic(e.target.checked)}
+          />
+          <span>Public update (visible on the dashboard)</span>
+        </label>
+        <Button
+          className="mt-4"
+          disabled={!body.trim()}
           onClick={() => {
             if (body.trim()) onAdd(body, isPublic);
             setBody("");
           }}
         >
           Add note
-        </button>
-      </div>
-    </div>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }
 
@@ -158,36 +200,67 @@ function ResolveForm({
   const [publicNote, setPublicNote] = useState("");
   const [status, setStatus] = useState("RESOLVED");
 
+  const canResolve = Boolean(proofPhotoUrl || reasonCode);
+
   return (
-    <div className="card">
-      <h2 style={{ marginTop: 0 }}>Resolve</h2>
-      <p className="muted">
-        Requires a proof photo OR a reason code (not proof-only).
-      </p>
-      <label>Resolution type</label>
-      <select
-        style={{ maxWidth: 220 }}
-        value={status}
-        onChange={(e) => setStatus(e.target.value)}
-      >
-        <option value="RESOLVED">Resolved</option>
-        <option value="WONT_FIX">Won&apos;t fix</option>
-      </select>
-      <label>Proof photo URL</label>
-      <input value={proofPhotoUrl} onChange={(e) => setProof(e.target.value)} />
-      <label>Reason code</label>
-      <select value={reasonCode} onChange={(e) => setReason(e.target.value)}>
-        <option value="">(none)</option>
-        {RESOLUTION_REASON_CODES.map((r) => (
-          <option key={r} value={r}>
-            {r}
-          </option>
-        ))}
-      </select>
-      <label>Public note (optional)</label>
-      <input value={publicNote} onChange={(e) => setPublicNote(e.target.value)} />
-      <div style={{ marginTop: 12 }}>
-        <button
+    <Card className="mb-6">
+      <CardContent className="p-5 pt-5">
+        <h2 className="text-base font-semibold">Resolve</h2>
+        <p className="mt-1 text-sm text-muted-foreground">
+          Requires a proof photo or a reason code.
+        </p>
+
+        <div className="mt-4 grid gap-4 sm:grid-cols-2">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="res-type">Resolution type</Label>
+            <Select
+              id="res-type"
+              value={status}
+              onChange={(e) => setStatus(e.target.value)}
+            >
+              <option value="RESOLVED">Resolved</option>
+              <option value="WONT_FIX">Won&apos;t fix</option>
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="res-reason">Reason code</Label>
+            <Select
+              id="res-reason"
+              value={reasonCode}
+              onChange={(e) => setReason(e.target.value)}
+            >
+              <option value="">(none)</option>
+              {RESOLUTION_REASON_CODES.map((r) => (
+                <option key={r} value={r}>
+                  {r}
+                </option>
+              ))}
+            </Select>
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="res-proof">Proof photo URL</Label>
+            <Input
+              id="res-proof"
+              value={proofPhotoUrl}
+              onChange={(e) => setProof(e.target.value)}
+            />
+          </div>
+
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="res-note">Public note (optional)</Label>
+            <Input
+              id="res-note"
+              value={publicNote}
+              onChange={(e) => setPublicNote(e.target.value)}
+            />
+          </div>
+        </div>
+
+        <Button
+          className="mt-4"
+          disabled={!canResolve}
           onClick={() =>
             onResolve({
               status,
@@ -198,8 +271,8 @@ function ResolveForm({
           }
         >
           Resolve case
-        </button>
-      </div>
-    </div>
+        </Button>
+      </CardContent>
+    </Card>
   );
 }

@@ -1,7 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { upload } from "@vercel/blob/client";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { Alert } from "@/components/ui/alert";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 
 const DRAFT_KEY = "civicledger:draft";
 
@@ -175,102 +184,144 @@ export default function ReportPage() {
 
   if (result?.kind === "emergency") {
     return (
-      <div>
-        <div className="banner emergency">
+      <PageContainer>
+        {/* The only coloured surface in the system - see the note in globals.css. */}
+        <Alert variant="emergency" className="text-base">
           {result.message} Call {result.emergencyNumber}.
-        </div>
-        <p className="muted">
+        </Alert>
+        <p className="mt-4 text-sm text-muted-foreground">
           We recorded a reference so the right team is aware:{" "}
-          <a href={result.trackingUrl}>track status</a>.
+          <Link href={result.trackingUrl} className="underline">
+            track status
+          </Link>
+          .
         </p>
-      </div>
+      </PageContainer>
     );
   }
 
   if (result?.kind === "received") {
     return (
-      <div className="card">
-        <h1>Report received</h1>
-        <p className="muted">
-          Thanks. It&apos;s in the triage queue now.
-        </p>
-        <p>
-          <a href={result.trackingUrl}>Track status &rarr;</a>
-        </p>
-      </div>
+      <PageContainer>
+        <Card>
+          <CardContent className="p-6 pt-6">
+            <h1 className="text-xl font-semibold">Report received</h1>
+            <p className="mt-1.5 text-sm text-muted-foreground">
+              Thanks. It&apos;s in the triage queue now.
+            </p>
+            <Link
+              href={result.trackingUrl}
+              className="mt-4 inline-block text-sm underline"
+            >
+              Track status &rarr;
+            </Link>
+          </CardContent>
+        </Card>
+      </PageContainer>
     );
   }
 
   return (
-    <div>
-      <h1>Report an issue</h1>
+    <PageContainer>
+      <PageHeader
+        title="Report an issue"
+        description="A photo and a location are the most useful things you can give us. Everything else is optional."
+      />
+
       {!online && (
-        <div className="banner" style={{ background: "var(--panel-2)" }}>
-          Offline - your report will be saved as a draft and submitted on
+        <Alert variant="notice" className="mb-4">
+          Offline — your report will be saved as a draft and submitted on
           reconnect.
-        </div>
+        </Alert>
       )}
       {error && (
-        <div className="banner" style={{ background: "var(--panel-2)" }}>
+        <Alert variant="notice" className="mb-4">
           {error}
-        </div>
+        </Alert>
       )}
 
-      <div className="card">
-        <label>Photo (optional)</label>
-        <input type="file" accept="image/*" capture="environment" onChange={onPhoto} />
-        {photoUrl && <p className="muted">Photo attached.</p>}
+      <Card>
+        <CardContent className="flex flex-col gap-5 p-5 pt-5">
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="photo">Photo (optional)</Label>
+            <Input
+              id="photo"
+              type="file"
+              accept="image/*"
+              capture="environment"
+              onChange={onPhoto}
+            />
+            {photoUrl && (
+              <p className="text-sm text-muted-foreground">Photo attached.</p>
+            )}
+          </div>
 
-        <label>Location</label>
-        <div className="row">
-          <button type="button" className="secondary" onClick={useMyLocation}>
-            Use my location
-          </button>
-          <input
-            style={{ maxWidth: 160 }}
-            placeholder="latitude"
-            value={lat}
-            onChange={(e) => setLat(e.target.value)}
-          />
-          <input
-            style={{ maxWidth: 160 }}
-            placeholder="longitude"
-            value={lng}
-            onChange={(e) => setLng(e.target.value)}
-          />
-        </div>
+          <div className="flex flex-col gap-2">
+            <Label>Location</Label>
+            <div className="flex flex-wrap items-center gap-2">
+              <Button
+                type="button"
+                variant="secondary"
+                onClick={useMyLocation}
+              >
+                Use my location
+              </Button>
+              <Input
+                className="max-w-[150px]"
+                placeholder="latitude"
+                value={lat}
+                onChange={(e) => setLat(e.target.value)}
+              />
+              <Input
+                className="max-w-[150px]"
+                placeholder="longitude"
+                value={lng}
+                onChange={(e) => setLng(e.target.value)}
+              />
+            </div>
+          </div>
 
-        <label>Address (optional)</label>
-        <input
-          value={addressText}
-          onChange={(e) => setAddressText(e.target.value)}
-          placeholder="e.g. corner of 5th & Main"
-        />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="address">Address (optional)</Label>
+            <Input
+              id="address"
+              value={addressText}
+              onChange={(e) => setAddressText(e.target.value)}
+              placeholder="e.g. corner of 5th & Main"
+            />
+          </div>
 
-        <label>Description (optional)</label>
-        <textarea
-          rows={4}
-          value={description}
-          onChange={(e) => setDescription(e.target.value)}
-          placeholder="What's the issue?"
-        />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="description">Description (optional)</Label>
+            <Textarea
+              id="description"
+              rows={4}
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              placeholder="What's the issue?"
+            />
+          </div>
 
-        <label>Contact for updates (optional)</label>
-        <input
-          value={contact}
-          onChange={(e) => setContact(e.target.value)}
-          placeholder="email or phone - anonymous by default"
-        />
+          <div className="flex flex-col gap-2">
+            <Label htmlFor="contact">Contact for updates (optional)</Label>
+            <Input
+              id="contact"
+              value={contact}
+              onChange={(e) => setContact(e.target.value)}
+              placeholder="email or phone — kept off the public record"
+            />
+          </div>
 
-        <div className="row" style={{ marginTop: 16 }}>
-          <button disabled={busy} onClick={submit}>
-            {busy ? "Working..." : "Submit report"}
-          </button>
-          <button type="button" className="secondary" onClick={saveDraft}>
-            Save draft
-          </button>
-        </div>
-      </div>
-    </div>
+          <div className="flex flex-wrap gap-2 pt-1">
+            <Button disabled={busy} onClick={submit}>
+              {busy ? "Working…" : "Submit report"}
+            </Button>
+            <Button type="button" variant="secondary" onClick={saveDraft}>
+              Save draft
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    </PageContainer>
   );
 }

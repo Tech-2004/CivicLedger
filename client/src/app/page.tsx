@@ -1,5 +1,9 @@
 import Link from "next/link";
 import { getOperator } from "@/lib/session";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { buttonVariants } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -27,79 +31,109 @@ const STEPS = [
   },
 ];
 
+const PROMISES = [
+  [
+    "Emergencies never wait on a model.",
+    "A deterministic check runs first and tells you to call emergency services.",
+  ],
+  [
+    "Low-confidence reports go to a human.",
+    "Nothing is auto-routed unless the classifier is sure enough.",
+  ],
+  [
+    "Closing a case needs evidence.",
+    "Either a proof photo or a recorded reason code.",
+  ],
+  [
+    "Public views carry no personal data.",
+    "Enforced by the database, not by convention.",
+  ],
+];
+
 export default async function HomePage() {
-  // Show operators a route back into their console instead of a sign-in link.
   const operator = await getOperator();
 
   return (
-    <div className="landing">
-      <section className="hero">
-        <span className="hero-eyebrow">Civic issue reporting</span>
-        <h1 className="hero-title">
+    <PageContainer>
+      <section className="pb-10">
+        <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-muted-foreground">
+          Civic issue reporting
+        </span>
+        <h1 className="mt-3 text-4xl font-semibold leading-[1.12] tracking-tight sm:text-[42px]">
           Report a problem.
           <br />
           Watch it actually get fixed.
         </h1>
-        <p className="hero-lede">
+        <p className="mt-4 max-w-[60ch] text-[17px] leading-relaxed text-muted-foreground">
           CivicLedger routes every report to the department that owns it, holds
           that department to a deadline, and publishes the outcome. The same
           record the city works from is the one you can see.
         </p>
 
-        <div className="hero-actions">
-          <Link className="btn-primary" href="/report">
+        <div className="mt-7 flex flex-wrap gap-3">
+          <Link href="/report" className={buttonVariants({ size: "lg" })}>
             Report an issue
           </Link>
-          <Link className="btn-ghost" href="/dashboard">
+          <Link
+            href="/dashboard"
+            className={buttonVariants({ variant: "outline", size: "lg" })}
+          >
             View the public dashboard
           </Link>
         </div>
 
-        <p className="muted hero-note">
+        <p className="mt-5 text-sm text-muted-foreground">
           {operator ? (
             <>
               Signed in as {operator.email} —{" "}
-              <Link href="/console">open your console</Link>.
+              <Link href="/console" className="underline">
+                open your console
+              </Link>
+              .
             </>
           ) : (
-            <>
-              Reporting takes a quick sign-in. Browsing the dashboard doesn&apos;t.
-            </>
+            "Reporting takes a quick sign-in. Browsing the dashboard doesn't."
           )}
         </p>
       </section>
 
-      <section className="steps" aria-label="How it works">
+      <Separator />
+
+      <section
+        aria-label="How it works"
+        className="grid gap-3 py-9 sm:grid-cols-2 lg:grid-cols-4"
+      >
         {STEPS.map((step) => (
-          <article key={step.n} className="step-card">
-            <span className="step-n">{step.n}</span>
-            <h2 className="step-title">{step.title}</h2>
-            <p className="muted step-body">{step.body}</p>
-          </article>
+          <Card key={step.n}>
+            <CardContent className="p-4 pt-4">
+              <span className="text-[11px] font-bold tracking-[0.1em] text-muted-foreground">
+                {step.n}
+              </span>
+              <h2 className="mt-2 text-base font-semibold">{step.title}</h2>
+              <p className="mt-1.5 text-sm text-muted-foreground">
+                {step.body}
+              </p>
+            </CardContent>
+          </Card>
         ))}
       </section>
 
-      <section className="promise">
-        <h2 className="promise-title">Built so the record can be trusted</h2>
-        <ul className="promise-list">
-          <li>
-            <strong>Emergencies never wait on a model.</strong> A deterministic
-            check runs first and tells you to call emergency services.
-          </li>
-          <li>
-            <strong>Low-confidence reports go to a human.</strong> Nothing is
-            auto-routed unless the classifier is sure enough.
-          </li>
-          <li>
-            <strong>Closing a case needs evidence.</strong> Either a proof photo
-            or a recorded reason code.
-          </li>
-          <li>
-            <strong>Public views carry no personal data.</strong> Enforced by the
-            database, not by convention.
-          </li>
+      <Separator />
+
+      <section className="pt-8">
+        <h2 className="mb-4 text-lg font-semibold">
+          Built so the record can be trusted
+        </h2>
+        <ul className="grid gap-3 sm:grid-cols-2">
+          {PROMISES.map(([lead, rest]) => (
+            <li key={lead} className="relative pl-5 text-sm leading-relaxed">
+              <span className="absolute left-0 top-[7px] size-2 rounded-sm bg-border" />
+              <strong className="font-semibold text-foreground">{lead}</strong>{" "}
+              <span className="text-muted-foreground">{rest}</span>
+            </li>
+          ))}
         </ul>
       </section>
-    </div>
+    </PageContainer>
   );
 }

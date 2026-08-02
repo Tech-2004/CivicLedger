@@ -3,7 +3,11 @@
 import { useState } from "react";
 import { signIn } from "next-auth/react";
 import { DEV_PROVIDER_ID } from "@/auth.config";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
+/** Google's mark must keep its own colours, so it is exempt from the theme. */
 function GoogleMark() {
   return (
     <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true">
@@ -40,12 +44,12 @@ export function SignInForm({
   return (
     <>
       <button
-        className="btn-google"
         disabled={pending !== null}
         onClick={() => {
           setPending("google");
           void signIn("google", { callbackUrl });
         }}
+        className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-md border border-[#dadce0] bg-white px-4 py-2.5 text-sm font-semibold text-[#1f1f1f] transition-colors hover:bg-[#f2f2f3] disabled:cursor-default disabled:opacity-65"
       >
         <GoogleMark />
         {pending === "google" ? "Redirecting..." : "Continue with Google"}
@@ -53,8 +57,10 @@ export function SignInForm({
 
       {devMode && (
         <>
-          <div className="auth-divider">
-            <span>local development only</span>
+          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
+            <span className="h-px flex-1 bg-border" />
+            local development only
+            <span className="h-px flex-1 bg-border" />
           </div>
 
           <form
@@ -63,9 +69,10 @@ export function SignInForm({
               setPending("dev");
               void signIn(DEV_PROVIDER_ID, { email, callbackUrl });
             }}
+            className="flex flex-col gap-2"
           >
-            <label htmlFor="dev-email">Any email address</label>
-            <input
+            <Label htmlFor="dev-email">Any email address</Label>
+            <Input
               id="dev-email"
               type="email"
               value={email}
@@ -74,19 +81,21 @@ export function SignInForm({
               autoComplete="off"
               required
             />
-            <p className="muted" style={{ fontSize: 13, margin: "8px 0 0" }}>
+            <p className="text-[13px] text-muted-foreground">
               A seeded operator address (admin@example.gov) signs you in as
               staff. Anything else behaves like a resident.
             </p>
-            <button
-              className="secondary"
-              style={{ marginTop: 12, width: "100%" }}
+            <Button
+              type="submit"
+              variant="secondary"
+              className="mt-1 w-full"
               disabled={pending !== null || email.trim() === ""}
             >
               {pending === "dev" ? "Signing in..." : "Sign in without a password"}
-            </button>
+            </Button>
           </form>
-          <p className="muted" style={{ fontSize: 13, marginBottom: 0 }}>
+
+          <p className="mt-3 text-[13px] text-muted-foreground">
             This form is not registered in production builds.
           </p>
         </>

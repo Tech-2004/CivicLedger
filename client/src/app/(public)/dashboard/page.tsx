@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import type { PublicCase } from "@civicledger/shared";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
 import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { MapView } from "@/components/dashboard/MapView";
-import "@/components/dashboard/dashboard.css";
 
 interface Rollup {
   category: string;
@@ -16,6 +14,11 @@ interface Rollup {
   avg_resolution_seconds: number | null;
 }
 
+/**
+ * Full-bleed screen: it fills the shell's content pane rather than sitting in
+ * the standard reading column. The app sidebar supplies navigation, so this page
+ * only owns its own filter rail and content.
+ */
 export default function DashboardPage() {
   const [cases, setCases] = useState<PublicCase[]>([]);
   const [rollups, setRollups] = useState<Rollup[]>([]);
@@ -47,7 +50,6 @@ export default function DashboardPage() {
     };
   }, [category, status]);
 
-  // Aggregate metrics
   const activeReports = rollups
     .filter((r) => r.status !== "RESOLVED" && r.status !== "WONT_FIX")
     .reduce((s, r) => s + r.case_count, 0);
@@ -71,9 +73,17 @@ export default function DashboardPage() {
       : "0.0";
 
   return (
-    <div className="dashboard-container">
-      <DashboardHeader />
-      <div className="dash-main">
+    <div className="flex min-h-screen flex-col">
+      <header className="border-b border-border px-6 pb-4 pt-14 md:pt-6">
+        <h1 className="text-xl font-semibold tracking-tight">
+          Public Reporting Dashboard
+        </h1>
+        <p className="mt-1 text-sm text-muted-foreground">
+          City of Springfield — refreshed every 30 seconds.
+        </p>
+      </header>
+
+      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <DashboardSidebar
           category={category}
           setCategory={setCategory}
@@ -81,13 +91,15 @@ export default function DashboardPage() {
           setStatus={setStatus}
           cases={cases}
         />
-        <div className="dash-content">
+        <div className="flex min-w-0 flex-1 flex-col gap-5 p-5">
           <MetricCards
             activeReports={activeReports}
             resolvedReports={resolvedReports}
             avgResDays={avgResDays}
           />
-          <MapView cases={cases} />
+          <div className="flex min-h-[420px] flex-1">
+            <MapView cases={cases} />
+          </div>
         </div>
       </div>
     </div>

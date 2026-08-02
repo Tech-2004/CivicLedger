@@ -1,38 +1,21 @@
-import Link from "next/link";
-import { getOperator } from "@/lib/session";
-import { SignOutButton } from "@/components/auth/SignOutButton";
+import { PageContainer } from "@/components/shell/PageContainer";
 
 export const runtime = "nodejs";
 
-export default async function ConsoleLayout({
+/**
+ * Console routes render in the standard reading column. Navigation and identity
+ * live in the app sidebar, so this layout draws no chrome of its own.
+ *
+ * It deliberately performs NO auth check. /console/sign-in is nested under this
+ * layout, so redirecting unauthenticated visitors here would bounce the sign-in
+ * page to itself forever. Enforcement belongs to the layers that can tell the
+ * two apart: middleware (which gates /console/* while exempting the sign-in
+ * path), the page-level operator checks, and RLS in the database.
+ */
+export default function ConsoleLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const operator = await getOperator();
-
-  return (
-    <div>
-      {operator ? (
-        <div className="console-bar">
-          <nav className="row">
-            <Link href="/console">Cases</Link>
-            {(operator.role === "reviewer" || operator.role === "admin") && (
-              <Link href="/review">Review queue</Link>
-            )}
-          </nav>
-          <div className="row console-bar-identity">
-            <span className="muted">{operator.email}</span>
-            <span className="role-chip">{operator.role}</span>
-            <SignOutButton />
-          </div>
-        </div>
-      ) : (
-        <p className="muted">
-          Not signed in. <Link href="/console/sign-in">Sign in</Link>.
-        </p>
-      )}
-      {children}
-    </div>
-  );
+  return <PageContainer>{children}</PageContainer>;
 }

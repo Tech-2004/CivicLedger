@@ -7,23 +7,26 @@ import { Button } from "@/components/ui/button";
 import type { ChromeProps } from "./ShellChrome";
 
 /**
- * Top bar: brand and session controls only.
+ * Top bar: session controls, and the drawer trigger on small screens.
  *
- * Navigation lives in the collapsible sidebar, so this stays a thin strip rather
- * than duplicating the same destinations in two places.
+ * The brand lives in the sidebar, which spans the full height, so this bar starts
+ * to its right. On pages without a sidebar (landing, sign-in) the brand is shown
+ * here instead, otherwise it would disappear entirely.
  */
 export function TopBar({
   isSignedIn,
   email,
   role,
   showSidebarTrigger,
+  showBrand,
   onOpenSidebar,
 }: Pick<ChromeProps, "isSignedIn" | "email" | "role"> & {
   showSidebarTrigger: boolean;
+  showBrand: boolean;
   onOpenSidebar: () => void;
 }) {
   return (
-    <header className="sticky top-0 z-40 h-14 shrink-0 border-b border-border bg-card/95 backdrop-blur">
+    <header className="sticky top-0 z-30 h-14 shrink-0 border-b border-border bg-card/95 backdrop-blur">
       <div className="flex h-full items-center gap-2 px-3 sm:px-4">
         {/* Opens the drawer on small screens, where the sidebar is off-canvas. */}
         {showSidebarTrigger && (
@@ -38,9 +41,14 @@ export function TopBar({
           </Button>
         )}
 
+        {/* Shown when the sidebar is absent, or on mobile where it is off-canvas. */}
         <Link
           href="/"
-          className="flex shrink-0 items-center gap-2 font-semibold"
+          className={
+            showBrand
+              ? "flex shrink-0 items-center gap-2 font-semibold"
+              : "flex shrink-0 items-center gap-2 font-semibold md:hidden"
+          }
         >
           <Building2 className="size-5" />
           <span>CivicLedger</span>
@@ -50,7 +58,7 @@ export function TopBar({
           {isSignedIn ? (
             <>
               {email && (
-                <span className="hidden max-w-[200px] truncate text-xs text-muted-foreground sm:inline">
+                <span className="hidden max-w-[220px] truncate text-xs text-muted-foreground sm:inline">
                   {email}
                   {role && (
                     <span className="ml-1.5 font-bold uppercase tracking-wide">

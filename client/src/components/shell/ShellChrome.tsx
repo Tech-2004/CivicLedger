@@ -52,23 +52,26 @@ export function ShellChrome({
   const showSidebar = pathname !== "/" && pathname !== "/console/sign-in";
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopBar
-        {...session}
-        showSidebarTrigger={showSidebar}
-        onOpenSidebar={() => setMobileOpen(true)}
-      />
+    // Sidebar first, spanning the full height; the top bar and page sit beside
+    // it, so there is one straight vertical edge rather than an L-shaped seam.
+    <div className="flex min-h-screen">
+      {showSidebar && (
+        <Sidebar
+          {...session}
+          collapsed={collapsed}
+          mobileOpen={mobileOpen}
+          onToggleCollapsed={toggleCollapsed}
+          onCloseMobile={() => setMobileOpen(false)}
+        />
+      )}
 
-      <div className="flex min-h-0 flex-1">
-        {showSidebar && (
-          <Sidebar
-            {...session}
-            collapsed={collapsed}
-            mobileOpen={mobileOpen}
-            onToggleCollapsed={toggleCollapsed}
-            onCloseMobile={() => setMobileOpen(false)}
-          />
-        )}
+      <div className="flex min-w-0 flex-1 flex-col">
+        <TopBar
+          {...session}
+          showSidebarTrigger={showSidebar}
+          showBrand={!showSidebar}
+          onOpenSidebar={() => setMobileOpen(true)}
+        />
         <main className="flex min-w-0 flex-1 flex-col">{children}</main>
       </div>
     </div>

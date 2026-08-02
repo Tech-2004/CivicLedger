@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   BarChart3,
+  Building2,
   ClipboardList,
   ListChecks,
   PanelLeftClose,
@@ -21,15 +22,15 @@ interface NavItem {
 }
 
 /**
- * Collapsible navigation rail.
+ * Full-height navigation rail.
  *
- * Expanded it shows labels; collapsed it becomes an icon-only strip with the
- * labels moved to tooltips. On small screens it leaves the flow entirely and
- * slides in as an overlay drawer, so it never competes with page content.
+ * It owns the brand and the collapse control, and spans the whole viewport
+ * height, so the top bar begins to its right rather than crossing over it. That
+ * keeps a single vertical edge down the page instead of an L-shaped seam.
  *
- * The dashboard has its own filter column beside this one - that panel is
- * content, this is navigation, so they are kept visually distinct: this rail uses
- * the sidebar surface token while the filter column sits on the page background.
+ * Collapsed it becomes an icon-only strip: the wordmark is hidden, labels move to
+ * tooltips, and the collapse control moves below the mark since 64px cannot hold
+ * both side by side.
  */
 export function Sidebar({
   isOperator,
@@ -72,8 +73,8 @@ export function Sidebar({
           "relative flex items-center gap-2.5 rounded-lg border border-transparent px-2.5 py-2 text-sm transition-colors",
           collapsed && "justify-center px-0",
           isActive(href)
-            ? // Active row: bordered box plus a left accent bar, so it still reads
-              // as selected once the rail is collapsed to icons only.
+            ? // Bordered box plus a left accent bar, so selection still reads once
+              // the rail is collapsed to icons only.
               "border-sidebar-border bg-sidebar-accent font-medium text-sidebar-accent-foreground before:absolute before:left-0 before:top-1/2 before:h-5 before:w-[3px] before:-translate-x-[7px] before:-translate-y-1/2 before:rounded-full before:bg-primary"
             : "font-medium text-muted-foreground hover:bg-sidebar-accent/60 hover:text-sidebar-foreground",
         )}
@@ -97,6 +98,19 @@ export function Sidebar({
     );
   }
 
+  const toggle = (
+    <Button
+      variant="ghost"
+      size="icon"
+      onClick={onToggleCollapsed}
+      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      title={collapsed ? "Expand" : "Collapse"}
+      className="hidden size-8 shrink-0 text-muted-foreground md:inline-flex"
+    >
+      {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
+    </Button>
+  );
+
   return (
     <>
       {/* Scrim for the mobile drawer. */}
@@ -114,31 +128,36 @@ export function Sidebar({
           // Mobile: fixed overlay drawer.
           "fixed inset-y-0 left-0 w-[260px]",
           mobileOpen ? "translate-x-0" : "-translate-x-full",
-          // Desktop: part of the flow, directly under the sticky top bar.
-          "md:sticky md:top-14 md:h-[calc(100vh-3.5rem)] md:translate-x-0",
+          // Desktop: full height, part of the flow.
+          "md:sticky md:top-0 md:h-screen md:translate-x-0",
           collapsed ? "md:w-[64px]" : "md:w-[248px]",
         )}
       >
-        {/* Collapse control sits at the top, so the nav items below never shift. */}
+        {/* Brand + collapse. Stacked when collapsed, since the rail is too narrow
+            to hold both on one row. */}
         <div
           className={cn(
-            "hidden h-12 shrink-0 items-center px-2.5 md:flex",
-            collapsed ? "justify-center" : "justify-end",
+            "flex shrink-0 flex-col gap-1 border-b border-sidebar-border px-3 py-3",
+            !collapsed && "flex-row items-center gap-2",
+            collapsed && "items-center px-2",
           )}
         >
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onToggleCollapsed}
-            aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
-            title={collapsed ? "Expand" : "Collapse"}
-            className="size-8 text-muted-foreground"
+          <Link
+            href="/"
+            onClick={onCloseMobile}
+            title={collapsed ? "CivicLedger" : undefined}
+            className={cn(
+              "flex min-w-0 items-center gap-2 font-semibold text-sidebar-foreground",
+              !collapsed && "flex-1",
+            )}
           >
-            {collapsed ? <PanelLeftOpen /> : <PanelLeftClose />}
-          </Button>
+            <Building2 className="size-5 shrink-0" />
+            {!collapsed && <span className="truncate">CivicLedger</span>}
+          </Link>
+          {toggle}
         </div>
 
-        <nav className="flex flex-1 flex-col gap-5 overflow-y-auto p-2.5 pt-3 md:pt-0">
+        <nav className="flex flex-1 flex-col gap-5 overflow-y-auto p-2.5">
           {group("Menu", residentItems)}
           {isOperator && group("Staff", staffItems)}
         </nav>

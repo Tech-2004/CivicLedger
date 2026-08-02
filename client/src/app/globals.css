@@ -1,5 +1,12 @@
 @import "tailwindcss";
 
+/* Tailwind v4 normally discovers source files on its own, but that detection is
+   unreliable inside an npm-workspaces monorepo: it emitted the base layer and
+   the tokens below while generating no utilities at all, so every page rendered
+   unstyled. Declaring the source tree explicitly (relative to this file) removes
+   the guesswork. */
+@source "../../src";
+
 /* ==========================================================================
    CivicLedger - monochrome theme (Tailwind v4 + shadcn/ui tokens)
    --------------------------------------------------------------------------

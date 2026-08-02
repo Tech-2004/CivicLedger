@@ -142,18 +142,19 @@ export function Sidebar({
             collapsed && "items-center px-2",
           )}
         >
-          <Link
-            href="/"
-            onClick={onCloseMobile}
-            title={collapsed ? "CivicLedger" : undefined}
-            className={cn(
-              "flex min-w-0 items-center gap-2 font-semibold text-sidebar-foreground",
-              !collapsed && "flex-1",
-            )}
-          >
-            <Building2 className="size-5 shrink-0" />
-            {!collapsed && <span className="truncate">CivicLedger</span>}
-          </Link>
+          {/* Collapsed the rail shows the toggle alone: the mark on its own said
+              nothing the nav icons below don't already, and stacking it above the
+              toggle just crowded a 64px column. */}
+          {!collapsed && (
+            <Link
+              href="/"
+              onClick={onCloseMobile}
+              className="flex min-w-0 flex-1 items-center gap-2 font-semibold text-sidebar-foreground"
+            >
+              <Building2 className="size-5 shrink-0" />
+              <span className="truncate">CivicLedger</span>
+            </Link>
+          )}
           {toggle}
         </div>
 

@@ -1,16 +1,13 @@
 import { auth } from "@/auth";
 import type { SessionWithOperator } from "@/auth.config";
-import { TopBar } from "./TopBar";
+import { ShellChrome } from "./ShellChrome";
 
 /**
- * The single application frame: one top bar, then the page.
- *
- * Navigation is horizontal rather than a left rail because the dashboard needs
- * that left column for its own filters - two stacked sidebars competed with each
- * other. Every route now shares this chrome.
+ * The single application frame: a thin top bar for brand and session, plus a
+ * collapsible navigation sidebar.
  *
  * Session state is resolved here, in a server component, and passed down as
- * plain props - only what the navigation renders, not the operator object, so
+ * plain props - only what the chrome renders, not the operator object, so
  * internal jurisdiction/department ids never reach the HTML.
  */
 export async function AppShell({ children }: { children: React.ReactNode }) {
@@ -18,14 +15,14 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const operator = session?.operator ?? null;
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <TopBar
-        isSignedIn={session !== null}
-        isOperator={operator !== null}
-        canReview={operator?.role === "reviewer" || operator?.role === "admin"}
-        email={session?.user?.email ?? operator?.email ?? null}
-      />
-      <main className="flex min-w-0 flex-1 flex-col">{children}</main>
-    </div>
+    <ShellChrome
+      isSignedIn={session !== null}
+      isOperator={operator !== null}
+      canReview={operator?.role === "reviewer" || operator?.role === "admin"}
+      email={session?.user?.email ?? operator?.email ?? null}
+      role={operator?.role ?? null}
+    >
+      {children}
+    </ShellChrome>
   );
 }

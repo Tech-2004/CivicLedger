@@ -2,9 +2,13 @@
 
 import { useEffect, useState } from "react";
 import type { PublicCase } from "@civicledger/shared";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import {
+  DashboardFilters,
+  type FilterState,
+} from "@/components/dashboard/DashboardFilters";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { MapView } from "@/components/dashboard/MapView";
+import { RecentReports } from "@/components/dashboard/RecentReports";
 
 interface Rollup {
   category: string;
@@ -15,15 +19,20 @@ interface Rollup {
 }
 
 /**
- * Full-bleed screen: it fills the shell's content pane rather than sitting in
- * the standard reading column. The app sidebar supplies navigation, so this page
- * only owns its own filter rail and content.
+ * Full-bleed screen: it fills the shell's content pane rather than sitting in the
+ * standard reading column. Navigation is the app sidebar's job and filters live
+ * behind the header control, so this page owns only its data.
  */
 export default function DashboardPage() {
   const [cases, setCases] = useState<PublicCase[]>([]);
   const [rollups, setRollups] = useState<Rollup[]>([]);
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("");
+  const [filters, setFilters] = useState<FilterState>({
+    category: "",
+    status: "",
+    dateRange: "7",
+  });
+
+  const { category, status } = filters;
 
   useEffect(() => {
     let active = true;
@@ -74,35 +83,28 @@ export default function DashboardPage() {
 
   return (
     <div className="flex flex-1 flex-col">
-      <header className="border-b border-border px-4 py-4 sm:px-6">
-        <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
-          Public Reporting Dashboard
-        </h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          City of Springfield — refreshed every 30 seconds.
-        </p>
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-4 sm:px-6">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+            Public Reporting Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            City of Springfield — refreshed every 30 seconds.
+          </p>
+        </div>
+        <DashboardFilters value={filters} onApply={setFilters} />
       </header>
 
-      {/* Filters take the left column on wide screens and stack above the
-          content on narrow ones. */}
-      <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
-        <DashboardSidebar
-          category={category}
-          setCategory={setCategory}
-          status={status}
-          setStatus={setStatus}
-          cases={cases}
+      <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-6">
+        <MetricCards
+          activeReports={activeReports}
+          resolvedReports={resolvedReports}
+          avgResDays={avgResDays}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-5">
-          <MetricCards
-            activeReports={activeReports}
-            resolvedReports={resolvedReports}
-            avgResDays={avgResDays}
-          />
-          <div className="flex min-h-[320px] flex-1 sm:min-h-[420px]">
-            <MapView cases={cases} />
-          </div>
+        <div className="flex min-h-[320px] flex-1 sm:min-h-[420px]">
+          <MapView cases={cases} />
         </div>
+        <RecentReports cases={cases} />
       </div>
     </div>
   );

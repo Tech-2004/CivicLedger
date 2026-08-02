@@ -59,24 +59,31 @@ export default async function HomePage() {
         <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-muted-foreground">
           Civic issue reporting
         </span>
-        <h1 className="mt-3 text-4xl font-semibold leading-[1.12] tracking-tight sm:text-[42px]">
+        <h1 className="mt-3 text-3xl font-semibold leading-[1.14] tracking-tight sm:text-4xl lg:text-[42px]">
           Report a problem.
           <br />
           Watch it actually get fixed.
         </h1>
-        <p className="mt-4 max-w-[60ch] text-[17px] leading-relaxed text-muted-foreground">
+        <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-muted-foreground sm:text-[17px]">
           CivicLedger routes every report to the department that owns it, holds
           that department to a deadline, and publishes the outcome. The same
           record the city works from is the one you can see.
         </p>
 
-        <div className="mt-7 flex flex-wrap gap-3">
-          <Link href="/report" className={buttonVariants({ size: "lg" })}>
+        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Link
+            href="/report"
+            className={buttonVariants({ size: "lg", className: "w-full sm:w-auto" })}
+          >
             Report an issue
           </Link>
           <Link
             href="/dashboard"
-            className={buttonVariants({ variant: "outline", size: "lg" })}
+            className={buttonVariants({
+              variant: "outline",
+              size: "lg",
+              className: "w-full sm:w-auto",
+            })}
           >
             View the public dashboard
           </Link>

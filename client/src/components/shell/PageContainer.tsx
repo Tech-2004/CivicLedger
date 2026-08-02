@@ -9,7 +9,7 @@
  */
 export function PageContainer({ children }: { children: React.ReactNode }) {
   return (
-    <div className="mx-auto w-full max-w-4xl px-6 pb-20 pt-14 md:pt-7">
+    <div className="mx-auto w-full max-w-4xl px-4 pb-16 pt-6 sm:px-6 sm:pt-8">
       {children}
     </div>
   );

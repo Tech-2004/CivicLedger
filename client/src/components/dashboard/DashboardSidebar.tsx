@@ -65,7 +65,7 @@ export function DashboardSidebar({
   cases,
 }: DashboardSidebarProps) {
   return (
-    <div className="flex w-full shrink-0 flex-col gap-6 overflow-y-auto border-b border-border p-5 lg:w-[300px] lg:border-b-0 lg:border-r">
+    <div className="flex w-full shrink-0 flex-col gap-5 overflow-y-auto border-b border-border p-4 sm:gap-6 sm:p-5 lg:w-[290px] lg:border-b-0 lg:border-r">
       <div className="flex flex-col gap-3">
         <span className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
           Category

@@ -1,13 +1,13 @@
 import { auth } from "@/auth";
 import type { SessionWithOperator } from "@/auth.config";
-import { Sidebar } from "./Sidebar";
+import { TopBar } from "./TopBar";
 
 /**
- * The single application frame.
+ * The single application frame: one top bar, then the page.
  *
- * Everything used to carry its own chrome: most pages had a top toolbar while
- * the dashboard shipped a bespoke header and sidebar, so moving between them
- * felt like two different products. One shell now wraps every route.
+ * Navigation is horizontal rather than a left rail because the dashboard needs
+ * that left column for its own filters - two stacked sidebars competed with each
+ * other. Every route now shares this chrome.
  *
  * Session state is resolved here, in a server component, and passed down as
  * plain props - only what the navigation renders, not the operator object, so
@@ -18,13 +18,12 @@ export async function AppShell({ children }: { children: React.ReactNode }) {
   const operator = session?.operator ?? null;
 
   return (
-    <div className="flex min-h-screen">
-      <Sidebar
+    <div className="flex min-h-screen flex-col">
+      <TopBar
         isSignedIn={session !== null}
         isOperator={operator !== null}
         canReview={operator?.role === "reviewer" || operator?.role === "admin"}
         email={session?.user?.email ?? operator?.email ?? null}
-        role={operator?.role ?? null}
       />
       <main className="flex min-w-0 flex-1 flex-col">{children}</main>
     </div>

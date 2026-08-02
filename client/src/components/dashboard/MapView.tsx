@@ -34,7 +34,7 @@ export function MapView({ cases }: MapViewProps) {
         backgroundSize: "40px 40px",
       }}
     >
-      <div className="absolute right-4 top-4 flex gap-4 rounded-full border border-border bg-card/90 px-3 py-2 text-xs font-medium backdrop-blur">
+      <div className="absolute right-2 top-2 flex flex-wrap justify-end gap-x-3 gap-y-1 rounded-xl border border-border bg-card/90 px-3 py-2 text-[11px] font-medium backdrop-blur sm:right-4 sm:top-4 sm:rounded-full sm:text-xs">
         <span className="flex items-center gap-1.5">
           <span className={cn("size-2 rounded-full", PIN_STYLES.new)} />
           Awaiting Triage

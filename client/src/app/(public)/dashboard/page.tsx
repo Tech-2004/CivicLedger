@@ -73,9 +73,9 @@ export default function DashboardPage() {
       : "0.0";
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="border-b border-border px-6 pb-4 pt-14 md:pt-6">
-        <h1 className="text-xl font-semibold tracking-tight">
+    <div className="flex flex-1 flex-col">
+      <header className="border-b border-border px-4 py-4 sm:px-6">
+        <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
           Public Reporting Dashboard
         </h1>
         <p className="mt-1 text-sm text-muted-foreground">
@@ -83,6 +83,8 @@ export default function DashboardPage() {
         </p>
       </header>
 
+      {/* Filters take the left column on wide screens and stack above the
+          content on narrow ones. */}
       <div className="flex min-h-0 flex-1 flex-col lg:flex-row">
         <DashboardSidebar
           category={category}
@@ -91,13 +93,13 @@ export default function DashboardPage() {
           setStatus={setStatus}
           cases={cases}
         />
-        <div className="flex min-w-0 flex-1 flex-col gap-5 p-5">
+        <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-5">
           <MetricCards
             activeReports={activeReports}
             resolvedReports={resolvedReports}
             avgResDays={avgResDays}
           />
-          <div className="flex min-h-[420px] flex-1">
+          <div className="flex min-h-[320px] flex-1 sm:min-h-[420px]">
             <MapView cases={cases} />
           </div>
         </div>

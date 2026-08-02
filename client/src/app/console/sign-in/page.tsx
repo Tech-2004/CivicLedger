@@ -45,9 +45,9 @@ export default async function SignInPage({
   const forReporting = (callbackUrl ?? "").startsWith("/report");
 
   return (
-    <div className="mx-auto w-full max-w-[400px] px-6 pb-20 pt-16 md:pt-12">
+    <div className="mx-auto w-full max-w-[400px] px-4 pb-16 pt-8 sm:px-6 sm:pt-12">
       <Card>
-        <CardContent className="p-7 pt-7">
+        <CardContent className="p-5 pt-5 sm:p-7 sm:pt-7">
           <span className="text-[11px] font-bold uppercase tracking-[0.08em] text-muted-foreground">
             {forReporting ? "Report an issue" : "Sign in"}
           </span>

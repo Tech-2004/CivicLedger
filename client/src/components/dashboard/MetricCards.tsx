@@ -41,14 +41,14 @@ export function MetricCards({
   ];
 
   return (
-    <div className="grid grid-cols-2 gap-4 xl:grid-cols-4">
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
       {metrics.map((m) => (
         <Card key={m.title} className="bg-card/85 backdrop-blur">
-          <CardContent className="flex flex-col p-4 pt-4">
-            <span className="text-[13px] font-medium text-muted-foreground">
+          <CardContent className="flex flex-col p-3.5 pt-3.5 sm:p-4 sm:pt-4">
+            <span className="text-xs font-medium text-muted-foreground sm:text-[13px]">
               {m.title}
             </span>
-            <span className="tabular mt-2 text-[28px] font-bold leading-none">
+            <span className="tabular mt-2 text-2xl font-bold leading-none sm:text-[28px]">
               {m.value}
             </span>
             <span className="mt-1.5 text-[11px] text-muted-foreground">

@@ -16,7 +16,8 @@
     "typecheck": "npm run typecheck -w @civicledger/shared && npm run typecheck -w @civicledger/server && npm run typecheck -w @civicledger/client",
     "test": "npm run test -w @civicledger/server",
     "db:migrate": "npm run db:migrate -w @civicledger/server",
-    "db:seed": "npm run db:seed -w @civicledger/server"
+    "db:seed": "npm run db:seed -w @civicledger/server",
+    "operator:add": "npm run operator:add -w @civicledger/server --"
   },
   "_comment_optionalDeps": "Linux SWC binaries for @swc/core (used by the workflow build plugin) are pinned below so package-lock captures them for Linux CI; npm skips them on other platforms.",
   "optionalDependencies": {

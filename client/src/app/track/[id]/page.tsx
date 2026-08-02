@@ -1,6 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { use, useEffect, useState } from "react";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { Alert } from "@/components/ui/alert";
+import { Card, CardContent } from "@/components/ui/card";
 
 interface Status {
   reportId: string;
@@ -44,33 +49,54 @@ export default function TrackPage({
     };
   }, [id]);
 
-  if (error) return <div className="banner">{error}</div>;
-  if (!status) return <p className="muted">Loading status...</p>;
-
   return (
-    <div>
-      <h1>Report status</h1>
-      <div className="card">
-        <p>
-          <strong>Status:</strong> {status.status}
-        </p>
-        <p className="muted">Moderation: {status.moderationStatus}</p>
-        {status.routingPath && (
-          <p className="muted">Routing: {status.routingPath}</p>
-        )}
-        {status.caseId ? (
-          <p>
-            Linked case:{" "}
-            <a href={`/cases/${status.caseId}`}>{status.caseId.slice(0, 8)}</a>{" "}
-            ({status.caseStatus})
-          </p>
-        ) : (
-          <p className="muted">Not yet linked to a case.</p>
-        )}
-        <p className="muted">
-          Submitted {new Date(status.createdAt).toLocaleString()}
-        </p>
-      </div>
-    </div>
+    <PageContainer>
+      <PageHeader
+        title="Report status"
+        description="This page refreshes itself every 30 seconds."
+      />
+
+      {error && <Alert variant="notice">{error}</Alert>}
+      {!error && !status && (
+        <p className="text-sm text-muted-foreground">Loading status…</p>
+      )}
+
+      {status && (
+        <Card>
+          <CardContent className="flex flex-col gap-2 p-5 pt-5 text-sm">
+            <p>
+              <span className="text-muted-foreground">Status: </span>
+              <span className="font-medium">{status.status}</span>
+            </p>
+            <p className="text-muted-foreground">
+              Moderation: {status.moderationStatus}
+            </p>
+            {status.routingPath && (
+              <p className="text-muted-foreground">
+                Routing: {status.routingPath}
+              </p>
+            )}
+            {status.caseId ? (
+              <p>
+                <span className="text-muted-foreground">Linked case: </span>
+                <Link href={`/cases/${status.caseId}`} className="underline">
+                  {status.caseId.slice(0, 8)}
+                </Link>{" "}
+                <span className="text-muted-foreground">
+                  ({status.caseStatus})
+                </span>
+              </p>
+            ) : (
+              <p className="text-muted-foreground">
+                Not yet linked to a case.
+              </p>
+            )}
+            <p className="text-muted-foreground">
+              Submitted {new Date(status.createdAt).toLocaleString()}
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </PageContainer>
   );
 }

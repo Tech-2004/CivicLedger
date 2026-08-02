@@ -2,11 +2,15 @@
 
 import { useEffect, useState } from "react";
 import type { PublicCase } from "@civicledger/shared";
-import { DashboardHeader } from "@/components/dashboard/DashboardHeader";
-import { DashboardSidebar } from "@/components/dashboard/DashboardSidebar";
+import {
+  ActiveFilterChips,
+  DashboardFilters,
+  DEFAULT_FILTERS,
+  type FilterState,
+} from "@/components/dashboard/DashboardFilters";
 import { MetricCards } from "@/components/dashboard/MetricCards";
 import { MapView } from "@/components/dashboard/MapView";
-import "@/components/dashboard/dashboard.css";
+import { RecentReports } from "@/components/dashboard/RecentReports";
 
 interface Rollup {
   category: string;
@@ -16,11 +20,17 @@ interface Rollup {
   avg_resolution_seconds: number | null;
 }
 
+/**
+ * Full-bleed screen: it fills the shell's content pane rather than sitting in the
+ * standard reading column. Navigation is the app sidebar's job and filters live
+ * behind the header control, so this page owns only its data.
+ */
 export default function DashboardPage() {
   const [cases, setCases] = useState<PublicCase[]>([]);
   const [rollups, setRollups] = useState<Rollup[]>([]);
-  const [category, setCategory] = useState("");
-  const [status, setStatus] = useState("");
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
+
+  const { category, status } = filters;
 
   useEffect(() => {
     let active = true;
@@ -47,7 +57,6 @@ export default function DashboardPage() {
     };
   }, [category, status]);
 
-  // Aggregate metrics
   const activeReports = rollups
     .filter((r) => r.status !== "RESOLVED" && r.status !== "WONT_FIX")
     .reduce((s, r) => s + r.case_count, 0);
@@ -71,24 +80,32 @@ export default function DashboardPage() {
       : "0.0";
 
   return (
-    <div className="dashboard-container">
-      <DashboardHeader />
-      <div className="dash-main">
-        <DashboardSidebar
-          category={category}
-          setCategory={setCategory}
-          status={status}
-          setStatus={setStatus}
-          cases={cases}
+    <div className="flex flex-1 flex-col">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-border px-4 py-4 sm:px-6">
+        <div className="min-w-0">
+          <h1 className="text-lg font-semibold tracking-tight sm:text-xl">
+            Public Reporting Dashboard
+          </h1>
+          <p className="mt-1 text-sm text-muted-foreground">
+            City of Springfield — refreshed every 30 seconds.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ActiveFilterChips value={filters} onChange={setFilters} />
+          <DashboardFilters value={filters} onApply={setFilters} />
+        </div>
+      </header>
+
+      <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-6">
+        <MetricCards
+          activeReports={activeReports}
+          resolvedReports={resolvedReports}
+          avgResDays={avgResDays}
         />
-        <div className="dash-content">
-          <MetricCards
-            activeReports={activeReports}
-            resolvedReports={resolvedReports}
-            avgResDays={avgResDays}
-          />
+        <div className="flex min-h-[320px] flex-1 sm:min-h-[420px]">
           <MapView cases={cases} />
         </div>
+        <RecentReports cases={cases} />
       </div>
     </div>
   );

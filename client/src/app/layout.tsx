@@ -1,9 +1,9 @@
 import type { Metadata, Viewport } from "next";
-import Link from "next/link";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
+import { AppShell } from "@/components/shell/AppShell";
 
 export const metadata: Metadata = {
   title: "CivicLedger",
@@ -12,7 +12,8 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
-  themeColor: "#0b0f14",
+  // Matches --bg in globals.css.
+  themeColor: "#0a0a0b",
 };
 
 export default function RootLayout({
@@ -23,20 +24,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
-        <header className="site">
-          <div className="inner">
-            <Link href="/" style={{ fontWeight: 700, color: "var(--text)" }}>
-              CivicLedger
-            </Link>
-            <nav>
-              <Link href="/report">Report</Link>
-              <Link href="/dashboard">Dashboard</Link>
-              <Link href="/console">Console</Link>
-              <Link href="/review">Review</Link>
-            </nav>
-          </div>
-        </header>
-        <main className="container">{children}</main>
+        {/* One frame for every route - see AppShell. */}
+        <AppShell>{children}</AppShell>
         <ServiceWorkerRegister />
         {/* Vercel-native observability (no-ops off Vercel / in dev) */}
         <Analytics />

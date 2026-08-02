@@ -1,46 +1,62 @@
 "use client";
 
+import { Card, CardContent } from "@/components/ui/card";
+
 interface MetricCardsProps {
   activeReports: number;
   resolvedReports: number;
   avgResDays: string;
 }
 
+/**
+ * Decorative emoji were removed: they render in their own colours regardless of
+ * CSS, which breaks the monochrome scheme, and duplicated the labels.
+ */
 export function MetricCards({
   activeReports,
   resolvedReports,
   avgResDays,
 }: MetricCardsProps) {
+  const metrics = [
+    {
+      title: "Active Reports",
+      value: activeReports,
+      sub: "Trend over 30 days",
+    },
+    {
+      title: "Reports This Week",
+      value: Math.floor(activeReports * 0.4),
+      sub: "Last 7 days",
+    },
+    {
+      title: "Resolved (30d)",
+      value: resolvedReports,
+      sub: "Across all categories",
+    },
+    {
+      title: "Avg. Resolution Time",
+      value: `${avgResDays} days`,
+      sub: "+0.2 days vs prev. month",
+    },
+  ];
+
   return (
-    <div className="metrics-grid">
-      <div className="metric-card">
-        <div className="metric-title">
-          Active Reports <span style={{ color: "#58a6ff" }}>📊</span>
-        </div>
-        <div className="metric-value">{activeReports}</div>
-        <div className="metric-sub">Trend over 30 days</div>
-      </div>
-      <div className="metric-card">
-        <div className="metric-title">
-          Reports This Week <span style={{ color: "#58a6ff" }}>📅</span>
-        </div>
-        <div className="metric-value">{Math.floor(activeReports * 0.4)}</div>
-        <div className="metric-sub">Last 7 Days</div>
-      </div>
-      <div className="metric-card">
-        <div className="metric-title">
-          Resolved (30d) <span style={{ color: "#2ea043" }}>✓</span>
-        </div>
-        <div className="metric-value">{resolvedReports}</div>
-        <div className="metric-sub">Across all categories</div>
-      </div>
-      <div className="metric-card">
-        <div className="metric-title">
-          Avg. Resolution Time <span style={{ color: "#d29922" }}>⚡</span>
-        </div>
-        <div className="metric-value">{avgResDays} days</div>
-        <div className="metric-sub">+0.2 days vs prev. month</div>
-      </div>
+    <div className="grid grid-cols-2 gap-3 sm:gap-4 xl:grid-cols-4">
+      {metrics.map((m) => (
+        <Card key={m.title} className="bg-card/85 backdrop-blur">
+          <CardContent className="flex flex-col p-3.5 pt-3.5 sm:p-4 sm:pt-4">
+            <span className="text-xs font-medium text-muted-foreground sm:text-[13px]">
+              {m.title}
+            </span>
+            <span className="tabular mt-2 text-2xl font-bold leading-none sm:text-[28px]">
+              {m.value}
+            </span>
+            <span className="mt-1.5 text-[11px] text-muted-foreground">
+              {m.sub}
+            </span>
+          </CardContent>
+        </Card>
+      ))}
     </div>
   );
 }

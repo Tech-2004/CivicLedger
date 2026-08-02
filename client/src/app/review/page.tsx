@@ -2,6 +2,15 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { CATEGORIES } from "@civicledger/shared";
+import { PageContainer } from "@/components/shell/PageContainer";
+import { PageHeader } from "@/components/shell/PageHeader";
+import { Alert } from "@/components/ui/alert";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select } from "@/components/ui/select";
 
 interface Item {
   id: string;
@@ -23,7 +32,7 @@ export default function ReviewPage() {
   const load = useCallback(async () => {
     const res = await fetch("/api/v1/review");
     if (res.ok) setItems((await res.json()).items ?? []);
-    else setMsg("Reviewer/admin access required.");
+    else setMsg("Reviewer or admin access required.");
   }, []);
 
   useEffect(() => {
@@ -41,42 +50,59 @@ export default function ReviewPage() {
   }
 
   return (
-    <div>
-      <h1>Manual review + moderation queue</h1>
+    <PageContainer>
+      <PageHeader
+        title="Manual review + moderation"
+        description="Two things land here: reports the classifier wasn't confident about, and content flagged by moderation."
+      />
+
       {msg && (
-        <div className="banner" style={{ background: "var(--panel-2)" }}>
+        <Alert variant="notice" className="mb-4">
           {msg}
-        </div>
+        </Alert>
       )}
-      {items.length === 0 && <p className="muted">Queue is empty.</p>}
 
-      {items.map((it) => (
-        <div className="card" key={it.id}>
-          <div className="row" style={{ justifyContent: "space-between" }}>
-            <span className="badge at_risk">{it.entry_reason}</span>
-            {it.emergency_gate_fired && (
-              <span className="badge overdue">emergency</span>
-            )}
-          </div>
-          <p>{it.description ?? "(no description)"}</p>
-          <p className="muted">
-            category: {it.category ?? "-"} · confidence:{" "}
-            {it.classification_confidence ?? "-"} · moderation:{" "}
-            {it.moderation_status}
-          </p>
-          {it.photo_url && it.moderation_status !== "FLAGGED" && (
-            // eslint-disable-next-line @next/next/no-img-element
-            <img
-              src={it.photo_url}
-              alt="report"
-              style={{ maxWidth: 240, borderRadius: 8 }}
-            />
-          )}
+      {items.length === 0 && (
+        <p className="text-sm text-muted-foreground">Queue is empty.</p>
+      )}
 
-          <ReviewActions item={it} onAct={act} />
-        </div>
-      ))}
-    </div>
+      <div className="flex flex-col gap-4">
+        {items.map((it) => (
+          <Card key={it.id}>
+            <CardContent className="p-5 pt-5">
+              <div className="flex items-center justify-between gap-3">
+                <Badge variant="atRisk">
+                  {it.entry_reason.replace("_", " ")}
+                </Badge>
+                {it.emergency_gate_fired && (
+                  <Badge variant="overdue">emergency</Badge>
+                )}
+              </div>
+
+              <p className="mt-3 text-sm">
+                {it.description ?? "(no description)"}
+              </p>
+              <p className="mt-1.5 text-xs text-muted-foreground">
+                category: {it.category ?? "—"} · confidence:{" "}
+                {it.classification_confidence ?? "—"} · moderation:{" "}
+                {it.moderation_status}
+              </p>
+
+              {it.photo_url && it.moderation_status !== "FLAGGED" && (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                  src={it.photo_url}
+                  alt="report"
+                  className="mt-3 max-w-[240px] rounded-lg border border-border"
+                />
+              )}
+
+              <ReviewActions item={it} onAct={act} />
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    </PageContainer>
   );
 }
 
@@ -91,70 +117,76 @@ function ReviewActions({
   const [mergeId, setMergeId] = useState("");
 
   return (
-    <div className="row" style={{ marginTop: 10, alignItems: "flex-end" }}>
-      <button onClick={() => onAct(item.id, { action: "approve" })}>
-        Approve
-      </button>
-
-      <div>
-        <label>Set category</label>
-        <div className="row">
-          <select
-            style={{ maxWidth: 180 }}
-            value={category}
-            onChange={(e) => setCategory(e.target.value)}
-          >
-            <option value="">(pick)</option>
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
-          <button
-            className="secondary"
-            onClick={() =>
-              category &&
-              onAct(item.id, { action: "edit_classification", category })
-            }
-          >
-            Save + route
-          </button>
-        </div>
+    <div className="mt-5 flex flex-col gap-4 border-t border-border pt-4">
+      <div className="flex flex-wrap gap-2">
+        <Button onClick={() => onAct(item.id, { action: "approve" })}>
+          Approve
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => onAct(item.id, { action: "reject_spam" })}
+        >
+          Reject spam
+        </Button>
+        <Button
+          variant="secondary"
+          onClick={() => onAct(item.id, { action: "force_emergency" })}
+        >
+          Force emergency
+        </Button>
       </div>
 
-      <div>
-        <label>Merge into case</label>
-        <div className="row">
-          <input
-            style={{ maxWidth: 220 }}
-            placeholder="target case id"
-            value={mergeId}
-            onChange={(e) => setMergeId(e.target.value)}
-          />
-          <button
-            className="secondary"
-            onClick={() =>
-              mergeId && onAct(item.id, { action: "merge", targetCaseId: mergeId })
-            }
-          >
-            Merge
-          </button>
+      <div className="grid gap-4 sm:grid-cols-2">
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`cat-${item.id}`}>Set category</Label>
+          <div className="flex gap-2">
+            <Select
+              id={`cat-${item.id}`}
+              value={category}
+              onChange={(e) => setCategory(e.target.value)}
+            >
+              <option value="">(pick)</option>
+              {CATEGORIES.map((c) => (
+                <option key={c} value={c}>
+                  {c}
+                </option>
+              ))}
+            </Select>
+            <Button
+              variant="secondary"
+              disabled={!category}
+              onClick={() =>
+                category &&
+                onAct(item.id, { action: "edit_classification", category })
+              }
+            >
+              Save
+            </Button>
+          </div>
+        </div>
+
+        <div className="flex flex-col gap-2">
+          <Label htmlFor={`merge-${item.id}`}>Merge into case</Label>
+          <div className="flex gap-2">
+            <Input
+              id={`merge-${item.id}`}
+              placeholder="target case id"
+              value={mergeId}
+              onChange={(e) => setMergeId(e.target.value)}
+            />
+            <Button
+              variant="secondary"
+              disabled={!mergeId}
+              onClick={() =>
+                mergeId &&
+                onAct(item.id, { action: "merge", targetCaseId: mergeId })
+              }
+            >
+              Merge
+            </Button>
+          </div>
         </div>
       </div>
-
-      <button
-        className="secondary"
-        onClick={() => onAct(item.id, { action: "reject_spam" })}
-      >
-        Reject spam
-      </button>
-      <button
-        className="secondary"
-        onClick={() => onAct(item.id, { action: "force_emergency" })}
-      >
-        Force emergency
-      </button>
     </div>
   );
 }

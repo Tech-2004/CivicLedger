@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react";
 import type { PublicCase } from "@civicledger/shared";
 import {
+  ActiveFilterChips,
   DashboardFilters,
+  DEFAULT_FILTERS,
   type FilterState,
 } from "@/components/dashboard/DashboardFilters";
 import { MetricCards } from "@/components/dashboard/MetricCards";
@@ -26,11 +28,7 @@ interface Rollup {
 export default function DashboardPage() {
   const [cases, setCases] = useState<PublicCase[]>([]);
   const [rollups, setRollups] = useState<Rollup[]>([]);
-  const [filters, setFilters] = useState<FilterState>({
-    category: "",
-    status: "",
-    dateRange: "7",
-  });
+  const [filters, setFilters] = useState<FilterState>(DEFAULT_FILTERS);
 
   const { category, status } = filters;
 
@@ -92,7 +90,10 @@ export default function DashboardPage() {
             City of Springfield — refreshed every 30 seconds.
           </p>
         </div>
-        <DashboardFilters value={filters} onApply={setFilters} />
+        <div className="flex flex-wrap items-center justify-end gap-2">
+          <ActiveFilterChips value={filters} onChange={setFilters} />
+          <DashboardFilters value={filters} onApply={setFilters} />
+        </div>
       </header>
 
       <div className="flex min-w-0 flex-1 flex-col gap-4 p-4 sm:gap-5 sm:p-6">

@@ -133,13 +133,14 @@ export function Sidebar({
           collapsed ? "md:w-[64px]" : "md:w-[248px]",
         )}
       >
-        {/* Brand + collapse. Stacked when collapsed, since the rail is too narrow
-            to hold both on one row. */}
+        {/* Brand + collapse control.
+            Fixed to the same 3.5rem height as the top bar and carrying the same
+            bottom border, so the two rules meet and read as one continuous line
+            across the app rather than stepping at the sidebar edge. */}
         <div
           className={cn(
-            "flex shrink-0 flex-col gap-1 border-b border-sidebar-border px-3 py-3",
-            !collapsed && "flex-row items-center gap-2",
-            collapsed && "items-center px-2",
+            "flex h-14 shrink-0 items-center gap-2 border-b border-border px-3",
+            collapsed && "justify-center px-2",
           )}
         >
           {/* Collapsed the rail shows the toggle alone: the mark on its own said

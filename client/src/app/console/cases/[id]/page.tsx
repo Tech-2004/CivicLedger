@@ -112,8 +112,8 @@ export default function ConsoleCaseDetail({
         {detail.reports.map((r) => (
           <Card key={String(r.id)}>
             <CardContent className="p-4 pt-4">
-              <div className="flex items-start justify-between gap-3">
-                <span className="text-sm">
+              <div className="flex flex-col-reverse items-start justify-between gap-1.5 sm:flex-row sm:gap-3">
+                <span className="min-w-0 break-words text-sm">
                   {String(r.description ?? "(no description)")}
                 </span>
                 <span className="shrink-0 text-xs text-muted-foreground">

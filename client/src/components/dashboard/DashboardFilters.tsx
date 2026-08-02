@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { Check, SlidersHorizontal } from "lucide-react";
+import { Check, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 
@@ -9,6 +9,21 @@ export interface FilterState {
   category: string;
   status: string;
   dateRange: string;
+}
+
+/** Unfiltered baseline. "Applied" means anything differing from this. */
+export const DEFAULT_FILTERS: FilterState = {
+  category: "",
+  status: "",
+  dateRange: "7",
+};
+
+function isDefault(state: FilterState) {
+  return (
+    state.category === DEFAULT_FILTERS.category &&
+    state.status === DEFAULT_FILTERS.status &&
+    state.dateRange === DEFAULT_FILTERS.dateRange
+  );
 }
 
 const GROUPS = [
@@ -87,7 +102,7 @@ export function DashboardFilters({
   const activeCount =
     (value.category ? 1 : 0) +
     (value.status ? 1 : 0) +
-    (value.dateRange !== "7" ? 1 : 0);
+    (value.dateRange !== DEFAULT_FILTERS.dateRange ? 1 : 0);
 
   function select(option: string) {
     setDraft((d) => ({ ...d, [KEY_BY_GROUP[group]]: option }));
@@ -173,26 +188,110 @@ export function DashboardFilters({
               </div>
             </div>
 
-            <div className="flex items-center justify-end gap-2 border-t border-border px-4 py-3">
+            <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
+              {/* Clears the draft rather than applying immediately, so Reset
+                  behaves like every other choice in this panel: nothing takes
+                  effect until Apply, and Cancel still abandons it. */}
               <Button
-                variant="secondary"
+                variant="ghost"
                 size="sm"
-                onClick={() => setOpen(false)}
+                disabled={isDefault(draft)}
+                onClick={() => setDraft(DEFAULT_FILTERS)}
+                className="text-muted-foreground"
               >
-                Cancel
+                <RotateCcw />
+                Reset
               </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  onApply(draft);
-                  setOpen(false);
-                }}
-              >
-                Apply
-              </Button>
+
+              <div className="flex items-center gap-2">
+                <Button
+                  variant="secondary"
+                  size="sm"
+                  onClick={() => setOpen(false)}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={() => {
+                    onApply(draft);
+                    setOpen(false);
+                  }}
+                >
+                  Apply
+                </Button>
+              </div>
             </div>
           </div>
         </>
+      )}
+    </div>
+  );
+}
+
+/** Human label for a stored filter value. */
+function labelFor(group: GroupId, value: string) {
+  return OPTIONS[group].find((o) => o.value === value)?.label ?? value;
+}
+
+/**
+ * Applied filters, shown beside the control.
+ *
+ * The panel is closed most of the time, so without this the only signal that a
+ * filter is narrowing the data was a count badge - enough to notice, not enough
+ * to know what was excluded. Each chip clears just its own filter.
+ */
+export function ActiveFilterChips({
+  value,
+  onChange,
+}: {
+  value: FilterState;
+  onChange: (next: FilterState) => void;
+}) {
+  const chips: { key: keyof FilterState; label: string }[] = [];
+
+  if (value.category) {
+    chips.push({
+      key: "category",
+      label: labelFor("category", value.category),
+    });
+  }
+  if (value.status) {
+    chips.push({ key: "status", label: labelFor("status", value.status) });
+  }
+  if (value.dateRange !== DEFAULT_FILTERS.dateRange) {
+    chips.push({ key: "dateRange", label: labelFor("date", value.dateRange) });
+  }
+
+  if (chips.length === 0) return null;
+
+  return (
+    <div className="flex flex-wrap items-center gap-2">
+      {chips.map((chip) => (
+        <span
+          key={chip.key}
+          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 py-1 pl-3 pr-1.5 text-xs font-medium"
+        >
+          {chip.label}
+          <button
+            onClick={() =>
+              onChange({ ...value, [chip.key]: DEFAULT_FILTERS[chip.key] })
+            }
+            aria-label={`Remove ${chip.label} filter`}
+            className="grid size-4 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+          >
+            <X className="size-3" />
+          </button>
+        </span>
+      ))}
+
+      {chips.length > 1 && (
+        <button
+          onClick={() => onChange(DEFAULT_FILTERS)}
+          className="cursor-pointer rounded-md px-2 py-1 text-xs font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
+        >
+          Clear all
+        </button>
       )}
     </div>
   );

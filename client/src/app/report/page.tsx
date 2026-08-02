@@ -258,26 +258,34 @@ export default function ReportPage() {
 
           <div className="flex flex-col gap-2">
             <Label>Location</Label>
-            <div className="flex flex-wrap items-center gap-2">
+            {/* Button takes its own row on mobile, then the pair of coordinates
+                splits the width evenly rather than being pinned to a fixed 150px
+                each, which crowded narrow screens. */}
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
               <Button
                 type="button"
                 variant="secondary"
                 onClick={useMyLocation}
+                className="w-full sm:w-auto"
               >
                 Use my location
               </Button>
-              <Input
-                className="max-w-[150px]"
-                placeholder="latitude"
-                value={lat}
-                onChange={(e) => setLat(e.target.value)}
-              />
-              <Input
-                className="max-w-[150px]"
-                placeholder="longitude"
-                value={lng}
-                onChange={(e) => setLng(e.target.value)}
-              />
+              <div className="grid grid-cols-2 gap-2 sm:contents">
+                <Input
+                  placeholder="latitude"
+                  inputMode="decimal"
+                  value={lat}
+                  onChange={(e) => setLat(e.target.value)}
+                  className="sm:max-w-[150px]"
+                />
+                <Input
+                  placeholder="longitude"
+                  inputMode="decimal"
+                  value={lng}
+                  onChange={(e) => setLng(e.target.value)}
+                  className="sm:max-w-[150px]"
+                />
+              </div>
             </div>
           </div>
 

@@ -5,7 +5,8 @@ import { SpeedInsights } from "@vercel/speed-insights/next";
 import "./globals.css";
 import { ServiceWorkerRegister } from "./sw-register";
 import { SiteNav } from "@/components/SiteNav";
-import { getOperator } from "@/lib/session";
+import { auth } from "@/auth";
+import type { SessionWithOperator } from "@/auth.config";
 
 export const metadata: Metadata = {
   title: "CivicLedger",
@@ -23,7 +24,8 @@ export default async function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  const operator = await getOperator();
+  const session = (await auth()) as SessionWithOperator | null;
+  const operator = session?.operator ?? null;
 
   return (
     <html lang="en">
@@ -34,6 +36,7 @@ export default async function RootLayout({
               CivicLedger
             </Link>
             <SiteNav
+              isSignedIn={session !== null}
               isOperator={operator !== null}
               canReview={
                 operator?.role === "reviewer" || operator?.role === "admin"

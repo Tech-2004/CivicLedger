@@ -52,12 +52,15 @@ if (!isProduction) {
         const email = String(credentials?.email ?? "")
           .trim()
           .toLowerCase();
-        if (!email) return null;
+        if (!email.includes("@")) return null;
 
+        // Any address is accepted so BOTH paths are testable without OAuth
+        // credentials: a seeded operator email yields operator scope, anything
+        // else yields a citizen session (operator === null), which is what a
+        // Google sign-in by a resident produces. The jwt callback resolves the
+        // scope either way, so this only decides identity, not authorization.
         const operator = await resolveOperatorByEmail(email);
-        if (!operator) return null;
-
-        return { id: operator.operatorId, email: operator.email };
+        return { id: operator?.operatorId ?? `citizen:${email}`, email };
       },
     }),
   );
@@ -70,15 +73,22 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   providers,
   callbacks: {
     /**
-     * The authorization gate. Returning false aborts the sign-in and redirects
-     * back to the sign-in page with `error=AccessDenied`.
+     * Any account with an email may sign in, because citizens need a session to
+     * file a report. This is NOT the console gate.
+     *
+     * Console authorization is the `operator` claim attached below: a citizen
+     * holds a valid session with operator === null, and middleware plus
+     * requireOperator refuse them the consoles. RLS is the backstop, since an
+     * operator row is what produces a scoped database context at all.
      */
     async signIn({ user }) {
-      const email = user.email?.trim().toLowerCase();
-      if (!email) return false;
-      return Boolean(await resolveOperatorByEmail(email));
+      return Boolean(user.email?.trim());
     },
 
+    /**
+     * Attaches the operator scope, or null for a citizen. This claim is what
+     * middleware reads on the Edge to tell the two apart.
+     */
     async jwt({ token }) {
       if (token.email) {
         // Re-resolved on each token read so a revoked operator or a changed

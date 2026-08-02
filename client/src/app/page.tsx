@@ -8,7 +8,7 @@ const STEPS = [
   {
     n: "01",
     title: "Report",
-    body: "Snap a photo, confirm the location, add a note if you want. Anonymous by default.",
+    body: "Snap a photo, confirm the location, add a note if you want. Your details stay off the public record.",
   },
   {
     n: "02",
@@ -56,7 +56,6 @@ export default async function HomePage() {
         </div>
 
         <p className="muted hero-note">
-          No account needed to report.{" "}
           {operator ? (
             <>
               Signed in as {operator.email} —{" "}
@@ -64,7 +63,7 @@ export default async function HomePage() {
             </>
           ) : (
             <>
-              City staff <Link href="/console/sign-in">sign in here</Link>.
+              Reporting takes a quick sign-in. Browsing the dashboard doesn&apos;t.
             </>
           )}
         </p>

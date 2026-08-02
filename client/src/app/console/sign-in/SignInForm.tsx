@@ -64,7 +64,7 @@ export function SignInForm({
               void signIn(DEV_PROVIDER_ID, { email, callbackUrl });
             }}
           >
-            <label htmlFor="dev-email">Seeded operator email</label>
+            <label htmlFor="dev-email">Any email address</label>
             <input
               id="dev-email"
               type="email"
@@ -74,6 +74,10 @@ export function SignInForm({
               autoComplete="off"
               required
             />
+            <p className="muted" style={{ fontSize: 13, margin: "8px 0 0" }}>
+              A seeded operator address (admin@example.gov) signs you in as
+              staff. Anything else behaves like a resident.
+            </p>
             <button
               className="secondary"
               style={{ marginTop: 12, width: "100%" }}

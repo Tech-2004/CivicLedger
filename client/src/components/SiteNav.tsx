@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { signOut } from "next-auth/react";
 
 /**
  * Header navigation.
@@ -13,13 +14,15 @@ import { usePathname } from "next/navigation";
  *
  * Takes booleans rather than the operator object so internal ids (jurisdiction,
  * department) are not serialised into the HTML just to render a menu. This is
- * presentation only - real enforcement is the middleware redirect,
- * requireOperator in each route handler, and RLS in the database.
+ * presentation only - real enforcement is the middleware gate, requireOperator
+ * in each route handler, and RLS in the database.
  */
 export function SiteNav({
+  isSignedIn,
   isOperator,
   canReview,
 }: {
+  isSignedIn: boolean;
   isOperator: boolean;
   canReview: boolean;
 }) {
@@ -33,13 +36,25 @@ export function SiteNav({
           <Link href="/dashboard">Dashboard</Link>
         </>
       )}
-      {isOperator ? (
+
+      {/* Operator-only destinations. */}
+      {isOperator && (
         <>
           <Link href="/console">Console</Link>
           {canReview && <Link href="/review">Review</Link>}
         </>
+      )}
+
+      {isSignedIn ? (
+        // Citizens never see the console, so this is their only way out.
+        <button
+          className="secondary btn-compact"
+          onClick={() => void signOut({ callbackUrl: "/" })}
+        >
+          Sign out
+        </button>
       ) : (
-        <Link href="/console/sign-in">Staff sign-in</Link>
+        <Link href="/console/sign-in">Sign in</Link>
       )}
     </nav>
   );

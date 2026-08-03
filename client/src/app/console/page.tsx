@@ -52,16 +52,19 @@ export default async function ConsoleCasesPage({
         description={`${cases.length} case${cases.length === 1 ? "" : "s"} in your scope.`}
       />
 
-      <div className="mb-4 flex flex-wrap gap-2">
+      {/* Segmented control rather than loose pills: these are mutually exclusive
+          views of one list, and a single grouped surface says that. */}
+      <div className="mb-4 inline-flex flex-wrap gap-1 rounded-lg border border-border bg-secondary/40 p-1">
         {FILTERS.map((f) => (
           <Link
             key={f.label}
             href={f.href}
+            aria-current={current === f.label ? "page" : undefined}
             className={cn(
-              "rounded-full border px-3 py-1 text-[13px] font-medium transition-colors",
+              "rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors duration-150",
               current === f.label
-                ? "border-primary bg-primary text-primary-foreground"
-                : "border-border bg-secondary/50 text-muted-foreground hover:bg-accent hover:text-accent-foreground",
+                ? "bg-background text-foreground shadow-xs"
+                : "text-muted-foreground hover:text-foreground",
             )}
           >
             {f.label}
@@ -96,7 +99,7 @@ export default async function ConsoleCasesPage({
                 </TableCell>
                 <TableCell className="tabular">{c.report_count}</TableCell>
                 <TableCell>
-                  <Badge variant={slaBadgeVariant[c.slaBadge]}>
+                  <Badge variant={slaBadgeVariant[c.slaBadge]} dot>
                     {c.slaBadge.replace("_", " ")}
                   </Badge>
                 </TableCell>

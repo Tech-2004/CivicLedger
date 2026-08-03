@@ -1,8 +1,9 @@
 import Link from "next/link";
+import { ArrowRight, Check } from "lucide-react";
 import { getOperator } from "@/lib/session";
 import { PageContainer } from "@/components/shell/PageContainer";
 import { buttonVariants } from "@/components/ui/button";
-import { Card, CardContent } from "@/components/ui/card";
+import { Card } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 
 export const runtime = "nodejs";
@@ -56,13 +57,18 @@ export default async function HomePage() {
   return (
     <PageContainer>
       <section className="pb-10">
-        <span className="text-[11px] font-bold uppercase tracking-[0.09em] text-muted-foreground">
+        <span className="inline-flex items-center gap-2 rounded-full border border-border bg-secondary/60 px-3 py-1 text-[11px] font-medium text-muted-foreground">
+          <span className="size-1.5 rounded-full bg-green-900" />
           Civic issue reporting
         </span>
-        <h1 className="mt-3 text-3xl font-semibold leading-[1.14] tracking-tight sm:text-4xl lg:text-[42px]">
+        <h1 className="mt-4 text-3xl font-semibold leading-[1.1] tracking-[-0.03em] sm:text-4xl lg:text-[46px]">
           Report a problem.
           <br />
-          Watch it actually get fixed.
+          {/* The payoff line gets the gradient, so the emphasis lands on the
+              promise rather than the instruction. */}
+          <span className="bg-gradient-to-b from-foreground to-gray-600 bg-clip-text text-transparent">
+            Watch it actually get fixed.
+          </span>
         </h1>
         <p className="mt-4 max-w-[60ch] text-base leading-relaxed text-muted-foreground sm:text-[17px]">
           CivicLedger routes every report to the department that owns it, holds
@@ -73,9 +79,13 @@ export default async function HomePage() {
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link
             href="/report"
-            className={buttonVariants({ size: "lg", className: "w-full sm:w-auto" })}
+            className={buttonVariants({
+              size: "lg",
+              className: "group w-full sm:w-auto",
+            })}
           >
             Report an issue
+            <ArrowRight className="transition-transform duration-150 group-hover:translate-x-0.5" />
           </Link>
           <Link
             href="/dashboard"
@@ -111,16 +121,14 @@ export default async function HomePage() {
         className="grid gap-3 py-9 sm:grid-cols-2 lg:grid-cols-4"
       >
         {STEPS.map((step) => (
-          <Card key={step.n}>
-            <CardContent className="p-4 pt-4">
-              <span className="text-[11px] font-bold tracking-[0.1em] text-muted-foreground">
-                {step.n}
-              </span>
-              <h2 className="mt-2 text-base font-semibold">{step.title}</h2>
-              <p className="mt-1.5 text-sm text-muted-foreground">
-                {step.body}
-              </p>
-            </CardContent>
+          <Card key={step.n} className="p-4">
+            <span className="tabular grid size-7 place-items-center rounded-md border border-border bg-secondary text-[11px] font-semibold text-muted-foreground">
+              {step.n}
+            </span>
+            <h2 className="mt-3 text-[15px] font-semibold">{step.title}</h2>
+            <p className="mt-1.5 text-sm leading-relaxed text-muted-foreground">
+              {step.body}
+            </p>
           </Card>
         ))}
       </section>
@@ -131,12 +139,17 @@ export default async function HomePage() {
         <h2 className="mb-4 text-lg font-semibold">
           Built so the record can be trusted
         </h2>
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <ul className="grid gap-4 sm:grid-cols-2">
           {PROMISES.map(([lead, rest]) => (
-            <li key={lead} className="relative pl-5 text-sm leading-relaxed">
-              <span className="absolute left-0 top-[7px] size-2 rounded-sm bg-border" />
-              <strong className="font-semibold text-foreground">{lead}</strong>{" "}
-              <span className="text-muted-foreground">{rest}</span>
+            <li key={lead} className="flex gap-2.5 text-sm leading-relaxed">
+              <Check
+                aria-hidden="true"
+                className="mt-0.5 size-4 shrink-0 text-green-900"
+              />
+              <span>
+                <strong className="font-medium text-foreground">{lead}</strong>{" "}
+                <span className="text-muted-foreground">{rest}</span>
+              </span>
             </li>
           ))}
         </ul>

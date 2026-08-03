@@ -1,63 +1,59 @@
 "use client";
 
+import Link from "next/link";
 import type { PublicCase } from "@civicledger/shared";
-import { cn } from "@/lib/utils";
+import { Badge, slaBadgeVariant } from "@/components/ui/badge";
+import { Card } from "@/components/ui/card";
 
 /**
- * Monochrome status scale, matching the map pins: urgency reads as brightness
- * rather than hue, and the text label always accompanies the dot.
- */
-const DOT_STYLES = {
-  new: "bg-primary",
-  progress: "bg-muted-foreground",
-  resolved: "bg-transparent ring-2 ring-inset ring-border",
-} as const;
-
-function statusKey(status: string): keyof typeof DOT_STYLES {
-  if (status === "RESOLVED") return "resolved";
-  if (status === "IN_PROGRESS") return "progress";
-  return "new";
-}
-
-/**
- * Recent reports strip. Previously buried at the bottom of the filter column;
- * now a content section in its own right, since it is data rather than a control.
+ * Recent reports strip. Previously buried at the bottom of the filter column; now
+ * a content section in its own right, since it is data rather than a control.
+ *
+ * Each card links through to the public case, and carries the same SLA badge the
+ * console uses, so the two views agree on what a case's status looks like.
  */
 export function RecentReports({ cases }: { cases: PublicCase[] }) {
   return (
     <section>
-      <h2 className="mb-3 text-[11px] font-bold uppercase tracking-wider text-muted-foreground">
-        Recent Reports
-      </h2>
+      <div className="mb-3 flex items-baseline justify-between gap-3">
+        <h2 className="text-[13px] font-medium text-muted-foreground">
+          Recent reports
+        </h2>
+        {cases.length > 6 && (
+          <span className="tabular text-[11px] text-muted-foreground">
+            showing 6 of {cases.length}
+          </span>
+        )}
+      </div>
 
       {cases.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No cases found.</p>
+        <Card className="grid place-items-center p-8">
+          <p className="text-sm text-muted-foreground">No cases found.</p>
+        </Card>
       ) : (
-        <div className="grid gap-2.5 sm:grid-cols-2 xl:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
           {cases.slice(0, 6).map((c) => (
-            <div
-              key={c.id}
-              className="flex gap-3 rounded-lg border border-border bg-card p-3"
-            >
-              <div className="size-12 shrink-0 rounded bg-gradient-to-br from-secondary to-accent" />
-              <div className="flex min-w-0 flex-col justify-center">
-                <span className="text-[11px] font-semibold text-muted-foreground">
-                  #{(c.id.split("-")[0] || c.id).toUpperCase()}
-                </span>
-                <span className="truncate text-[13px] font-medium capitalize">
-                  {c.category}
-                </span>
-                <span className="mt-0.5 flex items-center gap-1.5 text-[11px] text-muted-foreground">
-                  <span
-                    className={cn(
-                      "size-2 rounded-full",
-                      DOT_STYLES[statusKey(c.status)],
-                    )}
-                  />
-                  {c.status.replace("_", " ")}
-                </span>
-              </div>
-            </div>
+            <Link key={c.id} href={`/cases/${c.id}`} className="no-underline">
+              <Card hoverable className="flex h-full gap-3 p-3">
+                <div className="size-11 shrink-0 rounded-md border border-border bg-secondary" />
+                <div className="flex min-w-0 flex-1 flex-col gap-1">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="tabular text-[11px] text-muted-foreground">
+                      #{(c.id.split("-")[0] || c.id).toUpperCase()}
+                    </span>
+                    <Badge variant={slaBadgeVariant[c.slaBadge]} dot>
+                      {c.slaBadge.replace("_", " ")}
+                    </Badge>
+                  </div>
+                  <span className="truncate text-[13px] font-medium capitalize text-foreground">
+                    {c.category}
+                  </span>
+                  <span className="text-[11px] text-muted-foreground">
+                    {c.reportCount} report{c.reportCount === 1 ? "" : "s"}
+                  </span>
+                </div>
+              </Card>
+            </Link>
           ))}
         </div>
       )}

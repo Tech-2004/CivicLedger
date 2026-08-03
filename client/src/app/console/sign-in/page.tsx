@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { auth } from "@/auth";
+import { auth, credentialsLoginMode } from "@/auth";
 import type { SessionWithOperator } from "@/auth.config";
 import { SignInForm } from "./SignInForm";
 import { Alert } from "@/components/ui/alert";
@@ -67,7 +67,7 @@ export default async function SignInPage({
           )}
 
           <SignInForm
-            devMode={process.env.NODE_ENV !== "production"}
+            credentialsMode={credentialsLoginMode}
             callbackUrl={callbackUrl ?? "/report"}
           />
         </CardContent>

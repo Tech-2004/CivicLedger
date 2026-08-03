@@ -6,6 +6,7 @@ import { PageContainer } from "@/components/shell/PageContainer";
 import { PageHeader } from "@/components/shell/PageHeader";
 import { Alert } from "@/components/ui/alert";
 import { Card, CardContent } from "@/components/ui/card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface Status {
   reportId: string;
@@ -57,9 +58,7 @@ export default function TrackPage({
       />
 
       {error && <Alert variant="notice">{error}</Alert>}
-      {!error && !status && (
-        <p className="text-sm text-muted-foreground">Loading status…</p>
-      )}
+      {!error && !status && <Skeleton className="h-40 w-full" />}
 
       {status && (
         <Card>

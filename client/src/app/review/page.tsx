@@ -71,11 +71,18 @@ export default function ReviewPage() {
           <Card key={it.id}>
             <CardContent className="p-5 pt-5">
               <div className="flex items-center justify-between gap-3">
-                <Badge variant="atRisk">
+                <Badge
+                  variant={
+                    it.entry_reason === "flagged_content" ? "purple" : "atRisk"
+                  }
+                  dot
+                >
                   {it.entry_reason.replace("_", " ")}
                 </Badge>
                 {it.emergency_gate_fired && (
-                  <Badge variant="overdue">emergency</Badge>
+                  <Badge variant="overdue" dot>
+                    emergency
+                  </Badge>
                 )}
               </div>
 

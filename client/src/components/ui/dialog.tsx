@@ -17,7 +17,7 @@ function DialogOverlay({
   return (
     <DialogPrimitive.Overlay
       className={cn(
-        "fixed inset-0 z-50 bg-black/70 data-[state=open]:animate-in data-[state=closed]:animate-out",
+        "fixed inset-0 z-50 bg-black/80 backdrop-blur-[2px] animate-fade-in",
         className,
       )}
       {...props}
@@ -28,9 +28,9 @@ function DialogOverlay({
 /**
  * Centred modal surface.
  *
- * Sized against the viewport rather than a fixed width, and capped by
- * max-h/overflow, so on a phone it stays fully on screen instead of being clipped
- * at the edges - which is what the previous hand-rolled popover did.
+ * Sized against the viewport rather than a fixed width, and capped by max-height
+ * with internal scroll, so on a phone it stays fully on screen instead of being
+ * clipped at the edges.
  */
 function DialogContent({
   className,
@@ -46,7 +46,8 @@ function DialogContent({
       <DialogPrimitive.Content
         className={cn(
           "fixed left-1/2 top-1/2 z-50 flex w-[calc(100vw-2rem)] max-w-lg -translate-x-1/2 -translate-y-1/2 flex-col",
-          "max-h-[calc(100dvh-2rem)] overflow-hidden rounded-xl border border-border bg-popover shadow-2xl",
+          "max-h-[calc(100dvh-2rem)] overflow-hidden rounded-xl border border-border bg-popover shadow-lg",
+          "animate-scale-in",
           className,
         )}
         {...props}
@@ -81,7 +82,8 @@ function DialogFooter({ className, ...props }: React.ComponentProps<"div">) {
   return (
     <div
       className={cn(
-        "flex shrink-0 flex-col-reverse gap-2 border-t border-border px-4 py-3 sm:flex-row sm:items-center sm:justify-between",
+        "flex shrink-0 flex-col-reverse gap-2 border-t border-border bg-background/40 px-4 py-3",
+        "sm:flex-row sm:items-center sm:justify-between",
         className,
       )}
       {...props}
@@ -95,7 +97,7 @@ function DialogTitle({
 }: React.ComponentProps<typeof DialogPrimitive.Title>) {
   return (
     <DialogPrimitive.Title
-      className={cn("text-base font-semibold", className)}
+      className={cn("text-[15px] font-semibold tracking-tight", className)}
       {...props}
     />
   );
@@ -107,7 +109,7 @@ function DialogDescription({
 }: React.ComponentProps<typeof DialogPrimitive.Description>) {
   return (
     <DialogPrimitive.Description
-      className={cn("text-sm text-muted-foreground", className)}
+      className={cn("mt-0.5 text-sm text-muted-foreground", className)}
       {...props}
     />
   );

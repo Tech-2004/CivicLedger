@@ -70,7 +70,10 @@ export function TopBar({
               <Button
                 variant="secondary"
                 size="sm"
-                onClick={() => void signOut({ callbackUrl: "/" })}
+                // `redirectTo`, not `callbackUrl`: the latter is deprecated in
+                // Auth.js v5 and ignored, so sign-out fell back to reloading the
+                // current page - which middleware then bounced to sign-in.
+                onClick={() => void signOut({ redirectTo: "/" })}
               >
                 <LogOut />
                 <span className="hidden sm:inline">Sign out</span>

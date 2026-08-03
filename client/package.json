@@ -12,6 +12,7 @@
   "dependencies": {
     "@civicledger/server": "*",
     "@civicledger/shared": "*",
+    "@radix-ui/react-dialog": "^1.1.23",
     "@tailwindcss/postcss": "^4.3.3",
     "@vercel/analytics": "^1.4.1",
     "@vercel/blob": "^2.6.1",

@@ -1,8 +1,16 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Check, RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 
 export interface FilterState {
@@ -60,16 +68,21 @@ const KEY_BY_GROUP: Record<GroupId, keyof FilterState> = {
   date: "dateRange",
 };
 
+/** Human label for a stored filter value. */
+function labelFor(group: GroupId, value: string) {
+  return OPTIONS[group].find((o) => o.value === value)?.label ?? value;
+}
+
 /**
- * Filter and sort control for the dashboard.
+ * Filter control for the dashboard.
  *
- * The filters used to occupy a permanent left column, which collided with the
- * navigation sidebar - two rails side by side, neither of them content. They now
- * live behind a single control in the page header and open as a panel, so the
- * map and metrics get the full width.
+ * Built on the shadcn Dialog rather than the hand-rolled popover it replaces: the
+ * old panel was anchored to the trigger and clipped off-screen on narrow
+ * viewports, and it reimplemented focus handling, Escape and click-away by hand.
+ * Radix gives a focus trap, scroll lock and correct aria wiring for free.
  *
- * Selections are staged in a draft and only committed on Apply, so a half-made
- * choice never triggers a refetch, and Cancel genuinely reverts.
+ * Selections are staged in a draft and committed only on Apply, so a half-made
+ * choice never triggers a refetch and Cancel genuinely reverts.
  */
 export function DashboardFilters({
   value,
@@ -81,23 +94,12 @@ export function DashboardFilters({
   const [open, setOpen] = useState(false);
   const [group, setGroup] = useState<GroupId>("category");
   const [draft, setDraft] = useState<FilterState>(value);
-  const panelRef = useRef<HTMLDivElement>(null);
 
-  // Re-sync the draft whenever the panel opens, so it always reflects what is
-  // currently applied rather than an abandoned edit.
+  // Re-sync the draft on open, so it reflects what is applied rather than an
+  // abandoned edit from last time.
   useEffect(() => {
     if (open) setDraft(value);
   }, [open, value]);
-
-  // Close on Escape, matching the dismiss behaviour of a modal surface.
-  useEffect(() => {
-    if (!open) return;
-    function onKey(e: KeyboardEvent) {
-      if (e.key === "Escape") setOpen(false);
-    }
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [open]);
 
   const activeCount =
     (value.category ? 1 : 0) +
@@ -109,13 +111,11 @@ export function DashboardFilters({
   }
 
   return (
-    <div className="relative">
+    <>
       <Button
-        variant={open ? "secondary" : "outline"}
+        variant="outline"
         size="sm"
-        aria-haspopup="dialog"
-        aria-expanded={open}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => setOpen(true)}
         className="gap-2"
       >
         <SlidersHorizontal />
@@ -127,117 +127,110 @@ export function DashboardFilters({
         )}
       </Button>
 
-      {open && (
-        <>
-          {/* Click-away layer. */}
-          <div
-            aria-hidden="true"
-            className="fixed inset-0 z-40"
-            onClick={() => setOpen(false)}
-          />
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Filter</DialogTitle>
+            <DialogDescription>
+              Narrow the cases shown on the map and in the metrics.
+            </DialogDescription>
+          </DialogHeader>
 
-          <div
-            ref={panelRef}
-            role="dialog"
-            aria-label="Filter and sort"
-            className="absolute right-0 z-50 mt-2 w-[min(34rem,calc(100vw-2rem))] overflow-hidden rounded-xl border border-border bg-popover shadow-2xl"
-          >
-            <div className="border-b border-border px-4 py-3">
-              <h2 className="text-base font-semibold">Filter &amp; Sort</h2>
-            </div>
-
-            <div className="grid grid-cols-[8.5rem_1fr] sm:grid-cols-[10rem_1fr]">
-              {/* Group list */}
-              <div className="flex flex-col gap-1 border-r border-border p-2.5">
-                {GROUPS.map((g) => (
+          {/* Groups sit beside the options on wide screens and stack above them on
+              narrow ones, so neither column gets squeezed to an unusable width. */}
+          <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:flex-row">
+            <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-border p-2.5 sm:w-40 sm:flex-col sm:overflow-x-visible sm:border-b-0 sm:border-r">
+              {GROUPS.map((g) => {
+                const key = KEY_BY_GROUP[g.id];
+                const set =
+                  draft[key] !== DEFAULT_FILTERS[key] && draft[key] !== "";
+                return (
                   <button
                     key={g.id}
                     onClick={() => setGroup(g.id)}
                     className={cn(
-                      "rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                      "flex shrink-0 cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
                       group === g.id
                         ? "bg-accent font-medium text-accent-foreground"
                         : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                     )}
                   >
                     {g.label}
+                    {/* A dot marks groups holding a non-default value, so the user
+                        can see where a filter lives without opening each one. */}
+                    {set && (
+                      <span className="size-1.5 rounded-full bg-primary" />
+                    )}
                   </button>
-                ))}
-              </div>
-
-              {/* Options for the selected group */}
-              <div className="flex max-h-[15rem] flex-col gap-1 overflow-y-auto p-2.5">
-                {OPTIONS[group].map((o) => {
-                  const selected = draft[KEY_BY_GROUP[group]] === o.value;
-                  return (
-                    <button
-                      key={o.value || "all"}
-                      onClick={() => select(o.value)}
-                      className={cn(
-                        "flex items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                        selected
-                          ? "bg-accent/60 font-medium text-foreground"
-                          : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
-                      )}
-                    >
-                      {o.label}
-                      {selected && <Check className="size-4" />}
-                    </button>
-                  );
-                })}
-              </div>
+                );
+              })}
             </div>
 
-            <div className="flex items-center justify-between gap-2 border-t border-border px-4 py-3">
-              {/* Clears the draft rather than applying immediately, so Reset
-                  behaves like every other choice in this panel: nothing takes
-                  effect until Apply, and Cancel still abandons it. */}
-              <Button
-                variant="ghost"
-                size="sm"
-                disabled={isDefault(draft)}
-                onClick={() => setDraft(DEFAULT_FILTERS)}
-                className="text-muted-foreground"
-              >
-                <RotateCcw />
-                Reset
-              </Button>
-
-              <div className="flex items-center gap-2">
-                <Button
-                  variant="secondary"
-                  size="sm"
-                  onClick={() => setOpen(false)}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size="sm"
-                  onClick={() => {
-                    onApply(draft);
-                    setOpen(false);
-                  }}
-                >
-                  Apply
-                </Button>
-              </div>
+            <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2.5">
+              {OPTIONS[group].map((o) => {
+                const selected = draft[KEY_BY_GROUP[group]] === o.value;
+                return (
+                  <button
+                    key={o.value || "all"}
+                    onClick={() => select(o.value)}
+                    className={cn(
+                      "flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors",
+                      selected
+                        ? "bg-accent/60 font-medium text-foreground"
+                        : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
+                    )}
+                  >
+                    {o.label}
+                    {selected && <Check className="size-4 shrink-0" />}
+                  </button>
+                );
+              })}
             </div>
           </div>
-        </>
-      )}
-    </div>
-  );
-}
 
-/** Human label for a stored filter value. */
-function labelFor(group: GroupId, value: string) {
-  return OPTIONS[group].find((o) => o.value === value)?.label ?? value;
+          <DialogFooter>
+            <Button
+              variant="ghost"
+              size="sm"
+              disabled={isDefault(draft)}
+              onClick={() => setDraft(DEFAULT_FILTERS)}
+              className="text-muted-foreground sm:mr-auto"
+            >
+              <RotateCcw />
+              Reset
+            </Button>
+
+            <div className="flex items-center gap-2 sm:justify-end">
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={() => setOpen(false)}
+                className="flex-1 sm:flex-none"
+              >
+                Cancel
+              </Button>
+              <Button
+                size="sm"
+                onClick={() => {
+                  onApply(draft);
+                  setOpen(false);
+                }}
+                className="flex-1 sm:flex-none"
+              >
+                Apply
+              </Button>
+            </div>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </>
+  );
 }
 
 /**
  * Applied filters, shown beside the control.
  *
- * The panel is closed most of the time, so without this the only signal that a
+ * The dialog is closed most of the time, so without this the only signal that a
  * filter is narrowing the data was a count badge - enough to notice, not enough
  * to know what was excluded. Each chip clears just its own filter.
  */
@@ -270,15 +263,15 @@ export function ActiveFilterChips({
       {chips.map((chip) => (
         <span
           key={chip.key}
-          className="inline-flex items-center gap-1.5 rounded-full border border-border bg-secondary/60 py-1 pl-3 pr-1.5 text-xs font-medium"
+          className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-border bg-secondary/60 py-1 pl-3 pr-1.5 text-xs font-medium"
         >
-          {chip.label}
+          <span className="truncate">{chip.label}</span>
           <button
             onClick={() =>
               onChange({ ...value, [chip.key]: DEFAULT_FILTERS[chip.key] })
             }
             aria-label={`Remove ${chip.label} filter`}
-            className="grid size-4 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+            className="grid size-4 shrink-0 cursor-pointer place-items-center rounded-full text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
           >
             <X className="size-3" />
           </button>

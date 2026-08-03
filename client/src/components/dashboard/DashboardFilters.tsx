@@ -1,17 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { Check, RotateCcw, SlidersHorizontal, X } from "lucide-react";
+import { RotateCcw, SlidersHorizontal, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Segmented } from "@/components/ui/segmented";
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { cn } from "@/lib/utils";
+  Sheet,
+  SheetBody,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+} from "@/components/ui/sheet";
 
 export interface FilterState {
   category: string;
@@ -34,52 +35,61 @@ function isDefault(state: FilterState) {
   );
 }
 
-const GROUPS = [
-  { id: "category", label: "Category" },
-  { id: "status", label: "Status" },
-  { id: "date", label: "Date" },
-] as const;
+interface Option {
+  value: string;
+  label: string;
+}
 
-type GroupId = (typeof GROUPS)[number]["id"];
-
-const OPTIONS: Record<GroupId, { value: string; label: string }[]> = {
-  category: [
-    { value: "", label: "All categories" },
-    { value: "Pothole", label: "Pothole" },
-    { value: "Graffiti", label: "Graffiti" },
-    { value: "Trash", label: "Trash" },
-    { value: "Streetlight", label: "Streetlight" },
-  ],
-  status: [
-    { value: "", label: "All" },
-    { value: "Active", label: "Active" },
-    { value: "Resolved", label: "Resolved" },
-  ],
-  date: [
-    { value: "7", label: "Last 7 Days" },
-    { value: "30", label: "Last 30 Days" },
-    { value: "all", label: "All Time" },
-  ],
-};
-
-const KEY_BY_GROUP: Record<GroupId, keyof FilterState> = {
-  category: "category",
-  status: "status",
-  date: "dateRange",
-};
+const SECTIONS: {
+  key: keyof FilterState;
+  label: string;
+  options: Option[];
+}[] = [
+  {
+    key: "category",
+    label: "Category",
+    options: [
+      { value: "", label: "All" },
+      { value: "Pothole", label: "Pothole" },
+      { value: "Graffiti", label: "Graffiti" },
+      { value: "Trash", label: "Trash" },
+      { value: "Streetlight", label: "Streetlight" },
+    ],
+  },
+  {
+    key: "status",
+    label: "Status",
+    options: [
+      { value: "", label: "All" },
+      { value: "Active", label: "Active" },
+      { value: "Resolved", label: "Resolved" },
+    ],
+  },
+  {
+    key: "dateRange",
+    label: "Date range",
+    options: [
+      { value: "7", label: "Last 7 days" },
+      { value: "30", label: "Last 30 days" },
+      { value: "all", label: "All time" },
+    ],
+  },
+];
 
 /** Human label for a stored filter value. */
-function labelFor(group: GroupId, value: string) {
-  return OPTIONS[group].find((o) => o.value === value)?.label ?? value;
+function labelFor(key: keyof FilterState, value: string) {
+  const section = SECTIONS.find((s) => s.key === key);
+  return section?.options.find((o) => o.value === value)?.label ?? value;
 }
 
 /**
  * Filter control for the dashboard.
  *
- * Built on the shadcn Dialog rather than the hand-rolled popover it replaces: the
- * old panel was anchored to the trigger and clipped off-screen on narrow
- * viewports, and it reimplemented focus handling, Escape and click-away by hand.
- * Radix gives a focus trap, scroll lock and correct aria wiring for free.
+ * A side sheet rather than a centred modal. The modal sat on top of the data it
+ * was filtering and had to hide the groups behind a two-column tab switcher to
+ * fit; the sheet is tall, so every group and option is visible at once and the
+ * map stays in view beside it. On a phone it takes the full width instead of a
+ * cramped inset.
  *
  * Selections are staged in a draft and committed only on Apply, so a half-made
  * choice never triggers a refetch and Cancel genuinely reverts.
@@ -92,7 +102,6 @@ export function DashboardFilters({
   onApply: (next: FilterState) => void;
 }) {
   const [open, setOpen] = useState(false);
-  const [group, setGroup] = useState<GroupId>("category");
   const [draft, setDraft] = useState<FilterState>(value);
 
   // Re-sync the draft on open, so it reflects what is applied rather than an
@@ -101,14 +110,10 @@ export function DashboardFilters({
     if (open) setDraft(value);
   }, [open, value]);
 
-  const activeCount =
-    (value.category ? 1 : 0) +
-    (value.status ? 1 : 0) +
-    (value.dateRange !== DEFAULT_FILTERS.dateRange ? 1 : 0);
-
-  function select(option: string) {
-    setDraft((d) => ({ ...d, [KEY_BY_GROUP[group]]: option }));
-  }
+  const activeCount = SECTIONS.reduce(
+    (n, s) => n + (value[s.key] !== DEFAULT_FILTERS[s.key] ? 1 : 0),
+    0,
+  );
 
   return (
     <>
@@ -121,108 +126,72 @@ export function DashboardFilters({
         <SlidersHorizontal />
         <span className="hidden sm:inline">Filter</span>
         {activeCount > 0 && (
-          <span className="tabular grid size-5 place-items-center rounded-full bg-primary text-[11px] font-bold text-primary-foreground">
+          <span className="tabular grid size-5 place-items-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
             {activeCount}
           </span>
         )}
       </Button>
 
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Filter</DialogTitle>
-            <DialogDescription>
+      <Sheet open={open} onOpenChange={setOpen}>
+        <SheetContent side="right">
+          <SheetHeader>
+            <SheetTitle>Filter</SheetTitle>
+            <SheetDescription>
               Narrow the cases shown on the map and in the metrics.
-            </DialogDescription>
-          </DialogHeader>
+            </SheetDescription>
+          </SheetHeader>
 
-          {/* Groups sit beside the options on wide screens and stack above them on
-              narrow ones, so neither column gets squeezed to an unusable width. */}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden sm:flex-row">
-            <div className="flex shrink-0 gap-1 overflow-x-auto border-b border-border p-2.5 sm:w-40 sm:flex-col sm:overflow-x-visible sm:border-b-0 sm:border-r">
-              {GROUPS.map((g) => {
-                const key = KEY_BY_GROUP[g.id];
-                const set =
-                  draft[key] !== DEFAULT_FILTERS[key] && draft[key] !== "";
-                return (
-                  <button
-                    key={g.id}
-                    onClick={() => setGroup(g.id)}
-                    className={cn(
-                      "flex shrink-0 cursor-pointer items-center gap-2 rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                      group === g.id
-                        ? "bg-accent font-medium text-accent-foreground"
-                        : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
-                    )}
-                  >
-                    {g.label}
-                    {/* A dot marks groups holding a non-default value, so the user
-                        can see where a filter lives without opening each one. */}
-                    {set && (
-                      <span className="size-1.5 rounded-full bg-primary" />
-                    )}
-                  </button>
-                );
-              })}
-            </div>
+          <SheetBody className="flex flex-col gap-5">
+            {SECTIONS.map((section) => (
+              <div key={section.key} className="flex flex-col gap-2">
+                <span className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
+                  {section.label}
+                </span>
+                <Segmented
+                  ariaLabel={section.label}
+                  options={section.options}
+                  value={draft[section.key]}
+                  onChange={(next) =>
+                    setDraft((d) => ({ ...d, [section.key]: next }))
+                  }
+                />
+              </div>
+            ))}
+          </SheetBody>
 
-            <div className="flex min-h-0 flex-1 flex-col gap-1 overflow-y-auto p-2.5">
-              {OPTIONS[group].map((o) => {
-                const selected = draft[KEY_BY_GROUP[group]] === o.value;
-                return (
-                  <button
-                    key={o.value || "all"}
-                    onClick={() => select(o.value)}
-                    className={cn(
-                      "flex cursor-pointer items-center justify-between rounded-lg px-3 py-2 text-left text-sm transition-colors",
-                      selected
-                        ? "bg-accent/60 font-medium text-foreground"
-                        : "text-muted-foreground hover:bg-accent/40 hover:text-foreground",
-                    )}
-                  >
-                    {o.label}
-                    {selected && <Check className="size-4 shrink-0" />}
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          <DialogFooter>
+          <SheetFooter>
+            {/* Clears the draft rather than applying straight away, so Reset
+                behaves like every other choice here: nothing takes effect until
+                Apply, and Cancel still abandons it. */}
             <Button
               variant="ghost"
               size="sm"
               disabled={isDefault(draft)}
               onClick={() => setDraft(DEFAULT_FILTERS)}
-              className="text-muted-foreground sm:mr-auto"
+              className="mr-auto"
             >
               <RotateCcw />
               Reset
             </Button>
-
-            <div className="flex items-center gap-2 sm:justify-end">
-              <Button
-                variant="secondary"
-                size="sm"
-                onClick={() => setOpen(false)}
-                className="flex-1 sm:flex-none"
-              >
-                Cancel
-              </Button>
-              <Button
-                size="sm"
-                onClick={() => {
-                  onApply(draft);
-                  setOpen(false);
-                }}
-                className="flex-1 sm:flex-none"
-              >
-                Apply
-              </Button>
-            </div>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => setOpen(false)}
+            >
+              Cancel
+            </Button>
+            <Button
+              size="sm"
+              onClick={() => {
+                onApply(draft);
+                setOpen(false);
+              }}
+            >
+              Apply
+            </Button>
+          </SheetFooter>
+        </SheetContent>
+      </Sheet>
     </>
   );
 }
@@ -230,7 +199,7 @@ export function DashboardFilters({
 /**
  * Applied filters, shown beside the control.
  *
- * The dialog is closed most of the time, so without this the only signal that a
+ * The sheet is closed most of the time, so without this the only signal that a
  * filter is narrowing the data was a count badge - enough to notice, not enough
  * to know what was excluded. Each chip clears just its own filter.
  */
@@ -241,20 +210,9 @@ export function ActiveFilterChips({
   value: FilterState;
   onChange: (next: FilterState) => void;
 }) {
-  const chips: { key: keyof FilterState; label: string }[] = [];
-
-  if (value.category) {
-    chips.push({
-      key: "category",
-      label: labelFor("category", value.category),
-    });
-  }
-  if (value.status) {
-    chips.push({ key: "status", label: labelFor("status", value.status) });
-  }
-  if (value.dateRange !== DEFAULT_FILTERS.dateRange) {
-    chips.push({ key: "dateRange", label: labelFor("date", value.dateRange) });
-  }
+  const chips = SECTIONS.filter(
+    (s) => value[s.key] !== DEFAULT_FILTERS[s.key],
+  ).map((s) => ({ key: s.key, label: labelFor(s.key, value[s.key]) }));
 
   if (chips.length === 0) return null;
 

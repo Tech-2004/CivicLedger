@@ -1,22 +1,36 @@
 import * as React from "react";
+import { ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Native select styled to match Input. Kept native rather than pulling in
- * Radix: these are short, non-searchable option lists, and the native control
- * gives correct mobile and keyboard behaviour for free.
+ * Native select styled to match Input, with a chevron drawn over it since the
+ * native arrow can't be themed.
+ *
+ * Kept native rather than pulling in Radix: these are short, non-searchable
+ * option lists, and the native control gives correct mobile and keyboard
+ * behaviour for free.
  */
-function Select({ className, ...props }: React.ComponentProps<"select">) {
+function Select({ className, children, ...props }: React.ComponentProps<"select">) {
   return (
-    <select
-      className={cn(
-        "flex h-9 w-full appearance-none rounded-md border border-input bg-secondary/40 px-3 py-1 text-sm shadow-sm transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        "disabled:cursor-not-allowed disabled:opacity-50",
-        className,
-      )}
-      {...props}
-    />
+    <div className="relative">
+      <select
+        className={cn(
+          "flex h-9 w-full cursor-pointer appearance-none rounded-md border border-input bg-transparent pl-3 pr-9 text-sm",
+          "transition-[border-color,box-shadow] duration-150",
+          "hover:border-border-strong",
+          "focus-visible:border-ring focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring/30 focus-visible:ring-offset-0",
+          "disabled:cursor-not-allowed disabled:opacity-40",
+          className,
+        )}
+        {...props}
+      >
+        {children}
+      </select>
+      <ChevronDown
+        aria-hidden="true"
+        className="pointer-events-none absolute right-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground"
+      />
+    </div>
   );
 }
 

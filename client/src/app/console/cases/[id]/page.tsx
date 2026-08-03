@@ -9,6 +9,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select } from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 
 interface Detail {
@@ -67,9 +68,23 @@ export default function ConsoleCaseDetail({
     if (res.ok) load();
   }
 
+  // Skeletons rather than a "Loading…" line: they reserve the eventual layout, so
+  // the page settles once instead of jumping when data lands.
   if (!detail) {
+    if (msg) {
+      return (
+        <Alert variant="notice" className="mt-2">
+          {msg}
+        </Alert>
+      );
+    }
     return (
-      <p className="text-sm text-muted-foreground">{msg ?? "Loading…"}</p>
+      <div className="flex flex-col gap-4">
+        <Skeleton className="h-7 w-56" />
+        <Skeleton className="h-28 w-full" />
+        <Skeleton className="h-24 w-full" />
+        <Skeleton className="h-24 w-full" />
+      </div>
     );
   }
 

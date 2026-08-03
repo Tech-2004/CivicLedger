@@ -61,6 +61,10 @@ export default function DashboardPage() {
     .filter((r) => r.status !== "RESOLVED" && r.status !== "WONT_FIX")
     .reduce((s, r) => s + r.case_count, 0);
 
+  // The rollup already counts SLA breaches per group, so this reuses the
+  // database's definition rather than recomputing "overdue" in the client.
+  const overdueReports = rollups.reduce((s, r) => s + r.overdue_count, 0);
+
   const resolvedReports = rollups
     .filter((r) => r.status === "RESOLVED")
     .reduce((s, r) => s + r.case_count, 0);
@@ -101,6 +105,7 @@ export default function DashboardPage() {
           activeReports={activeReports}
           resolvedReports={resolvedReports}
           avgResDays={avgResDays}
+          overdueReports={overdueReports}
         />
         <div className="flex min-h-[320px] flex-1 sm:min-h-[420px]">
           <MapView cases={cases} />

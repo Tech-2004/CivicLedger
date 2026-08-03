@@ -8,63 +8,119 @@
 @source "../../src";
 
 /* ==========================================================================
-   CivicLedger - monochrome theme (Tailwind v4 + shadcn/ui tokens)
+   CivicLedger - Vercel / Geist palette
    --------------------------------------------------------------------------
-   The palette is a neutral greyscale. Hue is reserved for meaning, not
-   decoration, so hierarchy comes from value and weight: primary actions use a
-   light surface with dark ink, and urgent/selected states invert.
+   Chrome is greyscale and accent colour carries meaning. That split is what
+   makes the Vercel aesthetic read as calm rather than sparse: a near-black
+   canvas, low-contrast hairline borders, and one saturated colour only where it
+   says something.
 
-   The one deliberate exception is `destructive`, used for the emergency path.
-   Colour is a life-safety affordance there, and it is always paired with text,
-   so state never depends on colour perception alone.
+   Scales are the Geist ramps (dark). 100 is closest to the background and 1000
+   is the most prominent, so `gray-1000` is the brightest text and `blue-900` the
+   most legible blue on black - the numbering is perceptual, not lightness.
 
-   The app is dark-only, so the dark values sit on :root. The .dark selector is
-   kept so shadcn components that key off it behave, and so a light theme can be
-   added later without rewriting components.
+   Status colour is used deliberately, not decoratively: an SLA badge or an
+   emergency banner pairs its colour with a text label every time, so nothing is
+   conveyed by hue alone.
    ========================================================================== */
 
 @custom-variant dark (&:is(.dark *));
 
 :root {
-  --radius: 0.625rem;
+  --radius: 0.5rem;
 
-  --background: oklch(0.145 0 0);
-  --foreground: oklch(0.955 0 0);
+  /* --- Geist greyscale ---------------------------------------------------- */
+  --gray-100: #1a1a1a;
+  --gray-200: #1f1f1f;
+  --gray-300: #292929;
+  --gray-400: #2e2e2e;
+  --gray-500: #454545;
+  --gray-600: #878787;
+  --gray-700: #8f8f8f;
+  --gray-800: #7d7d7d;
+  --gray-900: #a1a1a1;
+  --gray-1000: #ededed;
 
-  --card: oklch(0.185 0 0);
-  --card-foreground: oklch(0.955 0 0);
-  --popover: oklch(0.205 0 0);
-  --popover-foreground: oklch(0.955 0 0);
+  /* Translucent greys, for borders that sit correctly over any surface. */
+  --gray-alpha-100: rgba(255, 255, 255, 0.055);
+  --gray-alpha-200: rgba(255, 255, 255, 0.09);
+  --gray-alpha-300: rgba(255, 255, 255, 0.13);
+  --gray-alpha-400: rgba(255, 255, 255, 0.17);
 
-  /* Primary is a light surface with dark ink - the highest contrast available
-     without introducing a hue. */
-  --primary: oklch(0.955 0 0);
-  --primary-foreground: oklch(0.16 0 0);
+  /* --- Geist accent ramps ------------------------------------------------- */
+  --blue-500: #0072f5;
+  --blue-600: #0080ff;
+  --blue-700: #3291ff;
+  --blue-900: #52a8ff;
 
-  --secondary: oklch(0.245 0 0);
-  --secondary-foreground: oklch(0.955 0 0);
+  --red-500: #e5484d;
+  --red-600: #f04248;
+  --red-700: #e5484d;
+  --red-900: #ff6369;
 
-  --muted: oklch(0.245 0 0);
-  --muted-foreground: oklch(0.68 0 0);
+  --amber-500: #ffb224;
+  --amber-700: #f1a10d;
+  --amber-900: #f5d90a;
 
-  --accent: oklch(0.275 0 0);
-  --accent-foreground: oklch(0.955 0 0);
+  --green-500: #1a9338;
+  --green-700: #45a557;
+  --green-900: #3dd68c;
 
-  --destructive: oklch(0.62 0.21 25.8);
-  --destructive-foreground: oklch(0.97 0.014 25.8);
+  --teal-700: #12a594;
+  --teal-900: #0ac5b3;
 
-  --border: oklch(0.275 0 0);
-  --input: oklch(0.3 0 0);
-  --ring: oklch(0.6 0 0);
+  --purple-700: #8e4ec6;
+  --purple-900: #bf7af0;
 
-  --sidebar: oklch(0.175 0 0);
-  --sidebar-foreground: oklch(0.955 0 0);
-  --sidebar-primary: oklch(0.955 0 0);
-  --sidebar-primary-foreground: oklch(0.16 0 0);
-  --sidebar-accent: oklch(0.255 0 0);
-  --sidebar-accent-foreground: oklch(0.955 0 0);
-  --sidebar-border: oklch(0.275 0 0);
-  --sidebar-ring: oklch(0.6 0 0);
+  --pink-700: #e93d82;
+  --pink-900: #f76e9c;
+
+  /* --- Surfaces ----------------------------------------------------------- */
+  /* Pure black canvas with a marginally lifted card, as Vercel does: elevation
+     comes from the hairline border rather than a heavy fill change. */
+  --background: #000000;
+  --background-elevated: #0a0a0a;
+  --foreground: var(--gray-1000);
+
+  --card: #0a0a0a;
+  --card-foreground: var(--gray-1000);
+  --popover: #0f0f0f;
+  --popover-foreground: var(--gray-1000);
+
+  /* Primary is white-on-black: the Vercel primary button. */
+  --primary: #ffffff;
+  --primary-foreground: #000000;
+
+  --secondary: var(--gray-100);
+  --secondary-foreground: var(--gray-1000);
+
+  --muted: var(--gray-100);
+  --muted-foreground: var(--gray-900);
+
+  --accent: var(--gray-200);
+  --accent-foreground: var(--gray-1000);
+
+  --border: var(--gray-alpha-200);
+  --border-strong: var(--gray-alpha-400);
+  --input: var(--gray-alpha-300);
+  --ring: var(--blue-700);
+
+  /* --- Semantic ----------------------------------------------------------- */
+  --destructive: var(--red-700);
+  --destructive-foreground: #ffffff;
+  --success: var(--green-900);
+  --warning: var(--amber-500);
+  --info: var(--blue-700);
+
+  /* --- Sidebar ------------------------------------------------------------ */
+  --sidebar: #0a0a0a;
+  --sidebar-foreground: var(--gray-1000);
+  --sidebar-primary: #ffffff;
+  --sidebar-primary-foreground: #000000;
+  --sidebar-accent: var(--gray-200);
+  --sidebar-accent-foreground: var(--gray-1000);
+  --sidebar-border: var(--gray-alpha-200);
+  --sidebar-ring: var(--blue-700);
 }
 
 .dark {
@@ -73,6 +129,7 @@
 
 @theme inline {
   --color-background: var(--background);
+  --color-background-elevated: var(--background-elevated);
   --color-foreground: var(--foreground);
 
   --color-card: var(--card);
@@ -92,8 +149,12 @@
 
   --color-destructive: var(--destructive);
   --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-info: var(--info);
 
   --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
   --color-input: var(--input);
   --color-ring: var(--ring);
 
@@ -106,15 +167,67 @@
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
 
-  --radius-sm: calc(var(--radius) - 4px);
-  --radius-md: calc(var(--radius) - 2px);
-  --radius-lg: var(--radius);
-  --radius-xl: calc(var(--radius) + 4px);
+  /* Expose the raw ramps so a component can reach for a specific step. */
+  --color-gray-100: var(--gray-100);
+  --color-gray-200: var(--gray-200);
+  --color-gray-300: var(--gray-300);
+  --color-gray-400: var(--gray-400);
+  --color-gray-500: var(--gray-500);
+  --color-gray-600: var(--gray-600);
+  --color-gray-900: var(--gray-900);
+  --color-gray-1000: var(--gray-1000);
+
+  --color-blue-500: var(--blue-500);
+  --color-blue-700: var(--blue-700);
+  --color-blue-900: var(--blue-900);
+  --color-red-700: var(--red-700);
+  --color-red-900: var(--red-900);
+  --color-amber-500: var(--amber-500);
+  --color-amber-900: var(--amber-900);
+  --color-green-700: var(--green-700);
+  --color-green-900: var(--green-900);
+  --color-teal-900: var(--teal-900);
+  --color-purple-900: var(--purple-900);
+  --color-pink-900: var(--pink-900);
+
+  --radius-sm: calc(var(--radius) - 2px);
+  --radius-md: var(--radius);
+  --radius-lg: calc(var(--radius) + 2px);
+  --radius-xl: calc(var(--radius) + 6px);
+
+  /* Vercel-style elevation: tight, low-opacity, never a soft glow. */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.45);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.55);
+  --shadow-lg: 0 12px 32px rgba(0, 0, 0, 0.65);
+
+  --animate-fade-in: fade-in 0.14s ease-out;
+  --animate-scale-in: scale-in 0.14s ease-out;
+  --animate-slide-in-right: slide-in-right 0.2s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) scale(0.97);
+  }
+}
+
+@keyframes slide-in-right {
+  from {
+    transform: translateX(100%);
+  }
 }
 
 @layer base {
   * {
-    @apply border-border outline-ring/50;
+    @apply border-border;
   }
 
   body {
@@ -122,6 +235,14 @@
     font-family:
       ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, Helvetica,
       Arial, sans-serif;
+    /* Geist tightens headings noticeably; matching it here keeps titles from
+       looking loose against the tighter component padding. */
+    letter-spacing: -0.011em;
+  }
+
+  /* One consistent focus ring, rather than each component inventing its own. */
+  :focus-visible {
+    @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
   }
 
   /* Numeric columns (SLA counts, metrics) shouldn't jitter as values change. */

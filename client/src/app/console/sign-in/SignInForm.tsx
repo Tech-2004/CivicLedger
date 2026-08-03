@@ -47,7 +47,8 @@ export function SignInForm({
         disabled={pending !== null}
         onClick={() => {
           setPending("google");
-          void signIn("google", { callbackUrl });
+          // `redirectTo`, not the deprecated `callbackUrl`, which v5 ignores.
+          void signIn("google", { redirectTo: callbackUrl });
         }}
         className="flex w-full cursor-pointer items-center justify-center gap-2.5 rounded-md border border-[#dadce0] bg-white px-4 py-2.5 text-sm font-semibold text-[#1f1f1f] transition-colors hover:bg-[#f2f2f3] disabled:cursor-default disabled:opacity-65"
       >
@@ -67,7 +68,7 @@ export function SignInForm({
             onSubmit={(e) => {
               e.preventDefault();
               setPending("dev");
-              void signIn(DEV_PROVIDER_ID, { email, callbackUrl });
+              void signIn(DEV_PROVIDER_ID, { email, redirectTo: callbackUrl });
             }}
             className="flex flex-col gap-2"
           >
